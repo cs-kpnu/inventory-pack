@@ -1,0 +1,6 @@
+GET {{HostAddress}}/
+Accept: text/plain
+
+###
+
+

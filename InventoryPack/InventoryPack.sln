@@ -1,0 +1,21 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InventoryPack", "InventoryPack.csproj", "{80392A33-8097-412D-B93E-98AB12C4577B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FF3D793-70FE-4A94-B767-EBC5ABE9AC22}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{80392A33-8097-412D-B93E-98AB12C4577B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80392A33-8097-412D-B93E-98AB12C4577B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80392A33-8097-412D-B93E-98AB12C4577B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80392A33-8097-412D-B93E-98AB12C4577B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

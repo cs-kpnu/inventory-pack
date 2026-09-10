@@ -216,3 +216,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Rider and .Net
+**/[Bb]in/
+**/[Oo]bj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+**/.idea/
+.idea/
+*.user
+*.userosscache
+*.suo
+**/.vs/
+.vs/
+
+# SQLite & Local Databases
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
