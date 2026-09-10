@@ -1,6 +1,6 @@
 using MiniExcelLibs.Attributes;
 
-namespace InventoryPack.Features.Assets.ImportExcel;
+namespace InventoryPack.Features.Assets.Import.Excel;
 
 /// <summary>
 ///     Representation of an Excel row.

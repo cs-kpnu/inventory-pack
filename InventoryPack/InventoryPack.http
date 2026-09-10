@@ -7,3 +7,16 @@ GET {{HostAddress}}/api/health/db
 Accept: application/json
 
 ###
+
+POST {{HostAddress}}/api/assets/import
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="майно.xlsx"
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+< ../../майно.xlsx
+--boundary--
+
+###
+

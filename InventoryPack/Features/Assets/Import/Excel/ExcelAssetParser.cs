@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 using InventoryPack.Data.Entities;
 using MiniExcelLibs;
 
-namespace InventoryPack.Features.Assets.ImportExcel;
+namespace InventoryPack.Features.Assets.Import.Excel;
 
 public static partial class ExcelAssetParser
 {

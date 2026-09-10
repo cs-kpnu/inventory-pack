@@ -1,6 +1,6 @@
 using InventoryPack.Data.Entities;
 
-namespace InventoryPack.Features.Assets.ImportExcel;
+namespace InventoryPack.Features.Assets.Import;
 
 /// <summary>
 ///     Represents the result of an import operation.
