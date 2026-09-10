@@ -31,7 +31,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasKey(r => r.Id);
 
             entity.Property(r => r.RawText).HasMaxLength(2000);
-            entity.Property(r => r.Reason).HasMaxLength(100);
+            entity.Property(r => r.Reason).HasConversion<string>().HasMaxLength(50);
             entity.Property(r => r.Subaccount).HasMaxLength(32);
             entity.Property(r => r.Mvo).HasMaxLength(150);
 
