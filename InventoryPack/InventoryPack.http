@@ -3,4 +3,7 @@ Accept: text/plain
 
 ###
 
+GET {{HostAddress}}/api/health/db
+Accept: application/json
 
+###
