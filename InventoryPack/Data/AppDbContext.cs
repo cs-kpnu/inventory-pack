@@ -21,7 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(a => a.Mvo).HasMaxLength(150);
             entity.Property(a => a.Subaccount).HasMaxLength(32);
 
-            entity.HasIndex(a => a.InventoryNumber);
+            entity.HasIndex(a => a.InventoryNumber).IsUnique();
             entity.HasIndex(a => new { a.Mvo, a.Subaccount });
             entity.HasIndex(a => a.PrintedAt);
         });

@@ -4,5 +4,6 @@ public enum RejectionReason
 {
     NoSingleCode,
     MultipleQuantity,
-    MissingContext
+    MissingContext,
+    DuplicateCode
 }
