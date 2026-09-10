@@ -9,7 +9,8 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
         var importer = serviceProvider.GetKeyedService<IAssetImporter>(fileExtension) ??
                        throw new NotSupportedException($"No asset importer for file extension '{fileExtension}'.");
 
-        var result = importer.Import(stream);
+        var parsedRows = importer.Parse(stream);
+        var result = AssetImportValidator.Validate(parsedRows);
 
         await db.Assets.AddRangeAsync(result.Assets, ct);
         await db.RejectedRows.AddRangeAsync(result.RejectedRows, ct);
