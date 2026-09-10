@@ -2,10 +2,13 @@ using InventoryPack.Data;
 
 namespace InventoryPack.Features.Assets.Import;
 
-public class ImportAssetsHandler(IAssetImporter importer, AppDbContext db)
+public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext db)
 {
-    public async Task<ImportResponse> HandleAsync(Stream stream, CancellationToken ct = default)
+    public async Task<ImportResponse> HandleAsync(string fileExtension, Stream stream, CancellationToken ct = default)
     {
+        var importer = serviceProvider.GetKeyedService<IAssetImporter>(fileExtension) ??
+                       throw new NotSupportedException($"No asset importer for file extension '{fileExtension}'.");
+
         var result = importer.Import(stream);
 
         await db.Assets.AddRangeAsync(result.Assets, ct);

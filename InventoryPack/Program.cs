@@ -11,7 +11,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddSingleton<IAssetImporter, ExcelAssetImporter>();
+builder.Services.AddKeyedSingleton<IAssetImporter, ExcelAssetImporter>(".xlsx");
+builder.Services.AddKeyedSingleton<IAssetImporter, ExcelAssetImporter>(".xls");
 builder.Services.AddScoped<ImportAssetsHandler>();
 
 var app = builder.Build();

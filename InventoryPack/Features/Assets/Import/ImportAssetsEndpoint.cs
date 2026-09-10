@@ -12,21 +12,26 @@ public static class ImportAssetsEndpoint
                 if (file is not { Length: > 0 })
                     return Results.BadRequest("File is missing or empty.");
 
-                if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-                    return Results.BadRequest("Only .xlsx spreadsheets are currently supported.");
+                var extension = Path.GetExtension(file.FileName.Trim('"', ' ')).ToLowerInvariant();
+                if (string.IsNullOrEmpty(extension))
+                    return Results.BadRequest("Uploaded file does not have a file extension.");
 
                 try
                 {
                     await using var stream = file.OpenReadStream();
-                    var response = await handler.HandleAsync(stream, ct);
+                    var response = await handler.HandleAsync(extension, stream, ct);
                     return Results.Ok(response);
+                }
+                catch (NotSupportedException ex)
+                {
+                    return Results.BadRequest(ex.Message);
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest($"Failed to parse spreadsheet: {ex.Message}");
+                    return Results.BadRequest($"Failed to parse file: {ex.Message}");
                 }
             })
-            .WithSummary("Import assets from Excel spreadsheet (.xlsx)")
+            .WithSummary("Import assets from spreadsheet or ledger file")
             .DisableAntiforgery();
     }
 }
