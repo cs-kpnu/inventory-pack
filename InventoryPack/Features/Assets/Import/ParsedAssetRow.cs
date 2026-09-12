@@ -9,12 +9,14 @@ public record ParsedAssetRow(
     int RowNumber,
     string RawText,
     string? Name,
-    string? InventoryNumber,
+    IReadOnlyList<string> InventoryNumbers,
     string? Mvo,
     string? Subaccount,
     decimal? Quantity
 )
 {
+    public string? InventoryNumber => InventoryNumbers.Count > 0 ? InventoryNumbers[0] : null;
+
     public Asset ToAsset()
     {
         return new Asset
