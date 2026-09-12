@@ -14,6 +14,7 @@ public static class HealthEndpoints
             var canConnect = await db.Database.CanConnectAsync();
             var applied = (await db.Database.GetAppliedMigrationsAsync()).ToList();
             var assetCount = await db.Assets.CountAsync();
+            var ledgerEntryCount = await db.LedgerEntries.CountAsync();
             var rejectedCount = await db.RejectedRows.CountAsync();
 
             return Results.Ok(new
@@ -21,6 +22,7 @@ public static class HealthEndpoints
                 provider = db.Database.ProviderName,
                 connected = canConnect,
                 appliedMigrations = applied,
+                ledgerEntries = ledgerEntryCount,
                 assets = assetCount,
                 rejectedRows = rejectedCount
             });

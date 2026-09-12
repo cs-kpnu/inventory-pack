@@ -6,9 +6,9 @@ namespace InventoryPack.Data.Entities;
 public class Asset
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid LedgerEntryId { get; set; }
+    public LedgerEntry LedgerEntry { get; set; } = null!;
     public required string InventoryNumber { get; set; }
-    public required string Name { get; set; }
-    public required string Mvo { get; set; }
-    public required string Subaccount { get; set; }
+    public int UnitIndex { get; set; } = 1;
     public DateTime? PrintedAt { get; set; }
 }

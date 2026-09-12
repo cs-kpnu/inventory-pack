@@ -5,6 +5,7 @@ namespace InventoryPack.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
+    public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<RejectedRow> RejectedRows => Set<RejectedRow>();
 
@@ -12,17 +13,30 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<LedgerEntry>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Subaccount).HasMaxLength(32);
+            entity.Property(e => e.Mvo).HasMaxLength(150);
+            entity.Property(e => e.Name).HasMaxLength(500);
+
+            entity.HasIndex(e => new { e.Mvo, e.Subaccount });
+        });
+
         modelBuilder.Entity<Asset>(entity =>
         {
             entity.HasKey(a => a.Id);
 
             entity.Property(a => a.InventoryNumber).HasMaxLength(32);
-            entity.Property(a => a.Name).HasMaxLength(500);
-            entity.Property(a => a.Mvo).HasMaxLength(150);
-            entity.Property(a => a.Subaccount).HasMaxLength(32);
 
-            entity.HasIndex(a => a.InventoryNumber).IsUnique();
-            entity.HasIndex(a => new { a.Mvo, a.Subaccount });
+            entity.HasOne(a => a.LedgerEntry)
+                .WithMany(e => e.Assets)
+                .HasForeignKey(a => a.LedgerEntryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(a => new { a.InventoryNumber, a.UnitIndex }).IsUnique();
+            entity.HasIndex(a => a.InventoryNumber);
             entity.HasIndex(a => a.PrintedAt);
         });
 

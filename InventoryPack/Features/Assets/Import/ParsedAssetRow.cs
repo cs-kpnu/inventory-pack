@@ -20,9 +20,13 @@ public record ParsedAssetRow(
         return new Asset
         {
             InventoryNumber = InventoryNumber!,
-            Name = Name!,
-            Mvo = Mvo!,
-            Subaccount = Subaccount!
+            LedgerEntry = new LedgerEntry
+            {
+                Name = Name!,
+                Mvo = Mvo!,
+                Subaccount = Subaccount!,
+                Quantity = (int)(Quantity ?? 1)
+            }
         };
     }
 
