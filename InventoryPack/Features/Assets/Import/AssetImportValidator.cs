@@ -46,12 +46,18 @@ public static class AssetImportValidator
 
     private static RejectionReason? GetRejectionReason(ParsedAssetRow row)
     {
-        return row switch
-        {
-            { Quantity: not 1 } => RejectionReason.MultipleQuantity,
-            { Mvo: null or "" } or { Subaccount: null or "" } => RejectionReason.MissingContext,
-            { InventoryNumber: null or "" } => RejectionReason.NoSingleCode,
-            _ => null
-        };
+        if (string.IsNullOrEmpty(row.Mvo) || string.IsNullOrEmpty(row.Subaccount))
+            return RejectionReason.MissingContext;
+
+        if (row.Quantity is null or <= 0 || row.Quantity % 1 != 0)
+            return RejectionReason.InvalidQuantity;
+
+        if (row.InventoryNumbers.Count == 0)
+            return RejectionReason.NoSingleCode;
+
+        if (row.InventoryNumbers.Count > 1 && row.InventoryNumbers.Count != (int)row.Quantity)
+            return RejectionReason.CodeQuantityMismatch;
+
+        return null;
     }
 }

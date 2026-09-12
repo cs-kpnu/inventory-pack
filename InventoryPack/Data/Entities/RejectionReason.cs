@@ -3,7 +3,8 @@ namespace InventoryPack.Data.Entities;
 public enum RejectionReason
 {
     NoSingleCode,
-    MultipleQuantity,
     MissingContext,
-    DuplicateCode
+    DuplicateCode,
+    CodeQuantityMismatch,
+    InvalidQuantity
 }
