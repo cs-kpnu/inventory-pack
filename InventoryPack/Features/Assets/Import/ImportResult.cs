@@ -6,6 +6,9 @@ namespace InventoryPack.Features.Assets.Import;
 ///     Represents the result of an import operation.
 /// </summary>
 public record ImportResult(
-    IReadOnlyList<Asset> Assets,
+    IReadOnlyList<LedgerEntry> LedgerEntries,
     IReadOnlyList<RejectedRow> RejectedRows
-);
+)
+{
+    public int TotalAssets => LedgerEntries.Sum(e => e.Assets.Count);
+}

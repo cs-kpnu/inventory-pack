@@ -15,23 +15,6 @@ public record ParsedAssetRow(
     decimal? Quantity
 )
 {
-    public string? InventoryNumber => InventoryNumbers.Count > 0 ? InventoryNumbers[0] : null;
-
-    public Asset ToAsset()
-    {
-        return new Asset
-        {
-            InventoryNumber = InventoryNumber!,
-            LedgerEntry = new LedgerEntry
-            {
-                Name = Name!,
-                Mvo = Mvo!,
-                Subaccount = Subaccount!,
-                Quantity = (int)(Quantity ?? 1)
-            }
-        };
-    }
-
     public RejectedRow ToRejected(RejectionReason reason)
     {
         return new RejectedRow
@@ -42,5 +25,28 @@ public record ParsedAssetRow(
             Mvo = Mvo,
             Subaccount = Subaccount
         };
+    }
+
+    public LedgerEntry ToLedgerEntry()
+    {
+        var qty = (int)Quantity!;
+        var entry = new LedgerEntry
+        {
+            Name = Name ?? string.Empty,
+            Mvo = Mvo ?? string.Empty,
+            Subaccount = Subaccount ?? string.Empty,
+            Quantity = qty
+        };
+
+        var isItemized = InventoryNumbers.Count == qty;
+        for (var i = 0; i < qty; i++)
+            entry.Assets.Add(new Asset
+            {
+                InventoryNumber = isItemized ? InventoryNumbers[i] : InventoryNumbers[0],
+                UnitIndex = i + 1,
+                LedgerEntry = entry
+            });
+
+        return entry;
     }
 }

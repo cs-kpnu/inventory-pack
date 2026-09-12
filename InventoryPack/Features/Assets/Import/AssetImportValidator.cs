@@ -6,17 +6,6 @@ public static class AssetImportValidator
 {
     public static ImportResult Validate(IEnumerable<ParsedAssetRow> rows)
     {
-        var (candidates, rejected) = FilterInvalidRows(rows);
-        var (assets, duplicateRejections) = ResolveDuplicates(candidates);
-
-        rejected.AddRange(duplicateRejections);
-
-        return new ImportResult(assets, rejected);
-    }
-
-    private static (List<ParsedAssetRow> Candidates, List<RejectedRow> Rejected) FilterInvalidRows(
-        IEnumerable<ParsedAssetRow> rows)
-    {
         var candidates = new List<ParsedAssetRow>();
         var rejected = new List<RejectedRow>();
 
@@ -26,22 +15,21 @@ public static class AssetImportValidator
             else
                 candidates.Add(row);
 
-        return (candidates, rejected);
-    }
+        var duplicateCodes = candidates
+            .SelectMany(r => r.InventoryNumbers)
+            .GroupBy(c => c, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-    private static (List<Asset> Assets, List<RejectedRow> Duplicates) ResolveDuplicates(
-        List<ParsedAssetRow> candidates)
-    {
-        var assets = new List<Asset>();
-        var duplicates = new List<RejectedRow>();
-
-        foreach (var group in candidates.GroupBy(r => r.InventoryNumber!, StringComparer.OrdinalIgnoreCase))
-            if (group.Count() == 1)
-                assets.Add(group.First().ToAsset());
+        var ledgerEntries = new List<LedgerEntry>();
+        foreach (var row in candidates)
+            if (row.InventoryNumbers.Any(duplicateCodes.Contains))
+                rejected.Add(row.ToRejected(RejectionReason.DuplicateCode));
             else
-                duplicates.AddRange(group.Select(r => r.ToRejected(RejectionReason.DuplicateCode)));
+                ledgerEntries.Add(row.ToLedgerEntry());
 
-        return (assets, duplicates);
+        return new ImportResult(ledgerEntries, rejected);
     }
 
     private static RejectionReason? GetRejectionReason(ParsedAssetRow row)

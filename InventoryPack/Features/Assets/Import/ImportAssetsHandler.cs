@@ -12,12 +12,12 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
         var parsedRows = importer.Parse(stream);
         var result = AssetImportValidator.Validate(parsedRows);
 
-        await db.Assets.AddRangeAsync(result.Assets, ct);
+        await db.LedgerEntries.AddRangeAsync(result.LedgerEntries, ct);
         await db.RejectedRows.AddRangeAsync(result.RejectedRows, ct);
         await db.SaveChangesAsync(ct);
 
-        return new ImportResponse(result.Assets.Count, result.RejectedRows.Count);
+        return new ImportResponse(result.LedgerEntries.Count, result.TotalAssets, result.RejectedRows.Count);
     }
 }
 
-public record ImportResponse(int ImportedAssets, int RejectedRows);
+public record ImportResponse(int ImportedLedgerEntries, int ImportedAssets, int RejectedRows);
