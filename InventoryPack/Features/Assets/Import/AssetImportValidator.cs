@@ -10,10 +10,13 @@ public static class AssetImportValidator
         var rejected = new List<RejectedRow>();
 
         foreach (var row in rows)
-            if (GetRejectionReason(row) is { } reason)
-                rejected.Add(CreateRejected(row, reason));
+        {
+            var reasons = GetRejectionReasons(row);
+            if (reasons.Count > 0)
+                rejected.Add(CreateRejected(row, reasons));
             else
                 candidates.Add(row);
+        }
 
         var duplicateCodes = candidates
             .SelectMany(r => r.InventoryNumbers)
@@ -25,7 +28,7 @@ public static class AssetImportValidator
         var ledgerEntries = new List<LedgerEntry>();
         foreach (var row in candidates)
             if (row.InventoryNumbers.Any(duplicateCodes.Contains))
-                rejected.Add(CreateRejected(row, RejectionReason.DuplicateCode));
+                rejected.Add(CreateRejected(row, [RejectionReason.DuplicateCode]));
             else
                 ledgerEntries.Add(CreateLedgerEntry(row));
 
@@ -55,33 +58,44 @@ public static class AssetImportValidator
         return entry;
     }
 
-    private static RejectedRow CreateRejected(ParsedAssetRow row, RejectionReason reason)
+    private static RejectedRow CreateRejected(ParsedAssetRow row, IEnumerable<RejectionReason> reasons)
     {
-        return new RejectedRow
+        var rejected = new RejectedRow
         {
             RowNumber = row.RowNumber,
             RawText = row.RawText,
-            Reason = reason,
             Mvo = row.Mvo,
             Subaccount = row.Subaccount,
             Quantity = row.Quantity
         };
+
+        foreach (var reason in reasons.Distinct())
+            rejected.Reasons.Add(new RejectedRowReason
+            {
+                Reason = reason,
+                RejectedRow = rejected
+            });
+
+        return rejected;
     }
 
-    private static RejectionReason? GetRejectionReason(ParsedAssetRow row)
+    private static List<RejectionReason> GetRejectionReasons(ParsedAssetRow row)
     {
+        var reasons = new List<RejectionReason>();
+
         if (string.IsNullOrEmpty(row.Mvo) || string.IsNullOrEmpty(row.Subaccount))
-            return RejectionReason.MissingContext;
+            reasons.Add(RejectionReason.MissingContext);
 
         if (row.Quantity is null or <= 0 || row.Quantity % 1 != 0)
-            return RejectionReason.InvalidQuantity;
+            reasons.Add(RejectionReason.InvalidQuantity);
 
         if (row.InventoryNumbers.Count == 0)
-            return RejectionReason.NoSingleCode;
+            reasons.Add(RejectionReason.NoSingleCode);
 
-        if (row.InventoryNumbers.Count > 1 && row.InventoryNumbers.Count != (int)row.Quantity)
-            return RejectionReason.CodeQuantityMismatch;
+        if (row.Quantity is > 0 && row.Quantity % 1 == 0 && row.InventoryNumbers.Count > 1 &&
+            row.InventoryNumbers.Count != (int)row.Quantity)
+            reasons.Add(RejectionReason.CodeQuantityMismatch);
 
-        return null;
+        return reasons;
     }
 }

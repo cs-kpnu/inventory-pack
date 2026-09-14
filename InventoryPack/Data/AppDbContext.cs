@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<RejectedRow> RejectedRows => Set<RejectedRow>();
+    public DbSet<RejectedRowReason> RejectedRowReasons => Set<RejectedRowReason>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,12 +46,23 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasKey(r => r.Id);
 
             entity.Property(r => r.RawText).HasMaxLength(2000);
-            entity.Property(r => r.Reason).HasConversion<string>().HasMaxLength(50);
             entity.Property(r => r.Subaccount).HasMaxLength(32);
             entity.Property(r => r.Mvo).HasMaxLength(150);
             entity.Property(r => r.Quantity).HasPrecision(18, 4);
 
+            entity.HasMany(r => r.Reasons)
+                .WithOne(re => re.RejectedRow)
+                .HasForeignKey(re => re.RejectedRowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(r => r.RowNumber);
+        });
+
+        modelBuilder.Entity<RejectedRowReason>(entity =>
+        {
+            entity.HasKey(re => new { re.RejectedRowId, re.Reason });
+            entity.Property(re => re.Reason).HasConversion<string>().HasMaxLength(50);
+            entity.HasIndex(re => re.Reason);
         });
     }
 }
