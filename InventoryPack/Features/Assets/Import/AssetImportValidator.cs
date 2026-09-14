@@ -1,9 +1,13 @@
+using System.Text.RegularExpressions;
 using InventoryPack.Data.Entities;
 
 namespace InventoryPack.Features.Assets.Import;
 
-public static class AssetImportValidator
+public static partial class AssetImportValidator
 {
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex WhitespaceRegex();
+
     public static ImportResult Validate(IEnumerable<ParsedAssetRow> rows)
     {
         var candidates = new List<ParsedAssetRow>();
@@ -18,24 +22,26 @@ public static class AssetImportValidator
                 candidates.Add(row);
         }
 
-        var duplicateCodes = candidates
-            .SelectMany(r => r.InventoryNumbers)
-            .GroupBy(c => c, StringComparer.OrdinalIgnoreCase)
-            .Where(g => g.Count() > 1)
+        var conflictingCodes = candidates
+            .SelectMany(r => r.InventoryNumbers.Select(c => (Code: c, Row: r)))
+            .GroupBy(x => x.Code, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Select(x => NormalizeName(x.Row.Name)).Distinct(StringComparer.Ordinal).Count() > 1)
             .Select(g => g.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        var codeCounters = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var ledgerEntries = new List<LedgerEntry>();
+
         foreach (var row in candidates)
-            if (row.InventoryNumbers.Any(duplicateCodes.Contains))
+            if (row.InventoryNumbers.Any(conflictingCodes.Contains))
                 rejected.Add(CreateRejected(row, [RejectionReason.DuplicateCode]));
             else
-                ledgerEntries.Add(CreateLedgerEntry(row));
+                ledgerEntries.Add(CreateLedgerEntry(row, codeCounters));
 
         return new ImportResult(ledgerEntries, rejected);
     }
 
-    private static LedgerEntry CreateLedgerEntry(ParsedAssetRow row)
+    private static LedgerEntry CreateLedgerEntry(ParsedAssetRow row, Dictionary<string, int> counters)
     {
         var qty = (int)row.Quantity!;
         var entry = new LedgerEntry
@@ -48,14 +54,27 @@ public static class AssetImportValidator
 
         var isItemized = row.InventoryNumbers.Count == qty;
         for (var i = 0; i < qty; i++)
+        {
+            var code = isItemized ? row.InventoryNumbers[i] : row.InventoryNumbers[0];
+            counters.TryGetValue(code, out var current);
+            counters[code] = ++current;
+
             entry.Assets.Add(new Asset
             {
-                InventoryNumber = isItemized ? row.InventoryNumbers[i] : row.InventoryNumbers[0],
-                UnitIndex = i + 1,
+                InventoryNumber = code,
+                UnitIndex = current,
                 LedgerEntry = entry
             });
+        }
 
         return entry;
+    }
+
+    private static string NormalizeName(string? name)
+    {
+        return string.IsNullOrWhiteSpace(name)
+            ? string.Empty
+            : WhitespaceRegex().Replace(name.Trim().ToLowerInvariant().TrimEnd('.', ',', ';', ':', '-', ' '), " ");
     }
 
     private static RejectedRow CreateRejected(ParsedAssetRow row, IEnumerable<RejectionReason> reasons)
