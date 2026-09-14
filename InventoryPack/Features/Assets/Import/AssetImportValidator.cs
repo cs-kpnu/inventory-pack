@@ -11,7 +11,7 @@ public static class AssetImportValidator
 
         foreach (var row in rows)
             if (GetRejectionReason(row) is { } reason)
-                rejected.Add(row.ToRejected(reason));
+                rejected.Add(CreateRejected(row, reason));
             else
                 candidates.Add(row);
 
@@ -25,11 +25,46 @@ public static class AssetImportValidator
         var ledgerEntries = new List<LedgerEntry>();
         foreach (var row in candidates)
             if (row.InventoryNumbers.Any(duplicateCodes.Contains))
-                rejected.Add(row.ToRejected(RejectionReason.DuplicateCode));
+                rejected.Add(CreateRejected(row, RejectionReason.DuplicateCode));
             else
-                ledgerEntries.Add(row.ToLedgerEntry());
+                ledgerEntries.Add(CreateLedgerEntry(row));
 
         return new ImportResult(ledgerEntries, rejected);
+    }
+
+    private static LedgerEntry CreateLedgerEntry(ParsedAssetRow row)
+    {
+        var qty = (int)row.Quantity!;
+        var entry = new LedgerEntry
+        {
+            Name = row.Name ?? string.Empty,
+            Mvo = row.Mvo ?? string.Empty,
+            Subaccount = row.Subaccount ?? string.Empty,
+            Quantity = qty
+        };
+
+        var isItemized = row.InventoryNumbers.Count == qty;
+        for (var i = 0; i < qty; i++)
+            entry.Assets.Add(new Asset
+            {
+                InventoryNumber = isItemized ? row.InventoryNumbers[i] : row.InventoryNumbers[0],
+                UnitIndex = i + 1,
+                LedgerEntry = entry
+            });
+
+        return entry;
+    }
+
+    private static RejectedRow CreateRejected(ParsedAssetRow row, RejectionReason reason)
+    {
+        return new RejectedRow
+        {
+            RowNumber = row.RowNumber,
+            RawText = row.RawText,
+            Reason = reason,
+            Mvo = row.Mvo,
+            Subaccount = row.Subaccount
+        };
     }
 
     private static RejectionReason? GetRejectionReason(ParsedAssetRow row)
