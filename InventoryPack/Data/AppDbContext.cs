@@ -48,6 +48,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(r => r.Reason).HasConversion<string>().HasMaxLength(50);
             entity.Property(r => r.Subaccount).HasMaxLength(32);
             entity.Property(r => r.Mvo).HasMaxLength(150);
+            entity.Property(r => r.Quantity).HasPrecision(18, 4);
 
             entity.HasIndex(r => r.RowNumber);
         });

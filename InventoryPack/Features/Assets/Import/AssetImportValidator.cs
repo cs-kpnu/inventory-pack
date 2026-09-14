@@ -63,7 +63,8 @@ public static class AssetImportValidator
             RawText = row.RawText,
             Reason = reason,
             Mvo = row.Mvo,
-            Subaccount = row.Subaccount
+            Subaccount = row.Subaccount,
+            Quantity = row.Quantity
         };
     }
 

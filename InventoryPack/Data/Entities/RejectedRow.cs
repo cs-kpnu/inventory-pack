@@ -11,4 +11,5 @@ public class RejectedRow
     public RejectionReason Reason { get; set; }
     public string? Subaccount { get; set; }
     public string? Mvo { get; set; }
+    public decimal? Quantity { get; set; }
 }
