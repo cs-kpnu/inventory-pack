@@ -21,6 +21,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Subaccount).HasMaxLength(32);
             entity.Property(e => e.Mvo).HasMaxLength(150);
             entity.Property(e => e.Name).HasMaxLength(500);
+            entity.Property(e => e.Quantity).HasPrecision(18, 4);
 
             entity.HasIndex(e => new { e.Mvo, e.Subaccount });
         });

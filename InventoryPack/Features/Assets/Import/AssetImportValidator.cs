@@ -43,7 +43,7 @@ public static partial class AssetImportValidator
 
     private static LedgerEntry CreateLedgerEntry(ParsedAssetRow row, Dictionary<string, int> counters)
     {
-        var qty = (int)row.Quantity!;
+        var qty = row.Quantity!.Value;
         var entry = new LedgerEntry
         {
             Name = row.Name ?? string.Empty,
@@ -52,19 +52,38 @@ public static partial class AssetImportValidator
             Quantity = qty
         };
 
-        var isItemized = row.InventoryNumbers.Count == qty;
-        for (var i = 0; i < qty; i++)
+        if (qty % 1 == 0)
         {
-            var code = isItemized ? row.InventoryNumbers[i] : row.InventoryNumbers[0];
-            counters.TryGetValue(code, out var current);
-            counters[code] = ++current;
-
-            entry.Assets.Add(new Asset
+            var intQty = (int)qty;
+            var isItemized = row.InventoryNumbers.Count == intQty;
+            for (var i = 0; i < intQty; i++)
             {
-                InventoryNumber = code,
-                UnitIndex = current,
-                LedgerEntry = entry
-            });
+                var code = isItemized ? row.InventoryNumbers[i] : row.InventoryNumbers[0];
+                counters.TryGetValue(code, out var current);
+                counters[code] = ++current;
+
+                entry.Assets.Add(new Asset
+                {
+                    InventoryNumber = code,
+                    UnitIndex = current,
+                    LedgerEntry = entry
+                });
+            }
+        }
+        else
+        {
+            foreach (var code in row.InventoryNumbers)
+            {
+                counters.TryGetValue(code, out var current);
+                counters[code] = ++current;
+
+                entry.Assets.Add(new Asset
+                {
+                    InventoryNumber = code,
+                    UnitIndex = current,
+                    LedgerEntry = entry
+                });
+            }
         }
 
         return entry;
@@ -105,7 +124,7 @@ public static partial class AssetImportValidator
         if (string.IsNullOrEmpty(row.Mvo) || string.IsNullOrEmpty(row.Subaccount))
             reasons.Add(RejectionReason.MissingContext);
 
-        if (row.Quantity is null or <= 0 || row.Quantity % 1 != 0)
+        if (row.Quantity is null or <= 0)
             reasons.Add(RejectionReason.InvalidQuantity);
 
         if (row.InventoryNumbers.Count == 0)

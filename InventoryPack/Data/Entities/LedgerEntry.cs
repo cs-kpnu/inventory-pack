@@ -9,7 +9,7 @@ public class LedgerEntry
     public required string Subaccount { get; set; }
     public required string Mvo { get; set; }
     public required string Name { get; set; }
-    public int Quantity { get; set; }
+    public decimal Quantity { get; set; }
 
     public List<Asset> Assets { get; set; } = [];
 }
