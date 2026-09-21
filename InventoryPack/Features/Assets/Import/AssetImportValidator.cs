@@ -121,7 +121,7 @@ public static partial class AssetImportValidator
     {
         var reasons = new List<RejectionReason>();
 
-        if (string.IsNullOrEmpty(row.Mvo) || string.IsNullOrEmpty(row.Subaccount))
+        if (string.IsNullOrWhiteSpace(row.Subaccount) || string.IsNullOrWhiteSpace(row.Name))
             reasons.Add(RejectionReason.MissingContext);
 
         if (row.Quantity is null or <= 0)
@@ -130,8 +130,12 @@ public static partial class AssetImportValidator
         if (row.InventoryNumbers.Count == 0)
             reasons.Add(RejectionReason.NoSingleCode);
 
+        if (row.InventoryNumbers.Count > 1 &&
+            row.InventoryNumbers.Distinct(StringComparer.OrdinalIgnoreCase).Count() != row.InventoryNumbers.Count)
+            reasons.Add(RejectionReason.DuplicateCode);
+
         if (row.Quantity is > 0 && row.Quantity % 1 == 0 && row.InventoryNumbers.Count > 1 &&
-            row.InventoryNumbers.Count != (int)row.Quantity)
+            row.InventoryNumbers.Count != row.Quantity.Value)
             reasons.Add(RejectionReason.CodeQuantityMismatch);
 
         return reasons;
