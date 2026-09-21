@@ -9,6 +9,7 @@ public static class CodeGroupsEndpoints
 
         group.MapGet("/", async (
                 string? search,
+                string? status,
                 int? page,
                 int? pageSize,
                 CodeGroupQueryHandler handler,
@@ -20,7 +21,7 @@ public static class CodeGroupsEndpoints
                 if (pageNumber < 1 || effectivePageSize < 1 || effectivePageSize > 100)
                     return Results.BadRequest("Page must be >= 1 and pageSize must be between 1 and 100.");
 
-                var response = await handler.GetPagedAsync(search, pageNumber, effectivePageSize, ct);
+                var response = await handler.GetPagedAsync(search, status, pageNumber, effectivePageSize, ct);
                 return Results.Ok(response);
             })
             .WithSummary("Get paginated list of code groups");

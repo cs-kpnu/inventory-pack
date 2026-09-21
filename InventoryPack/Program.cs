@@ -35,8 +35,11 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
-app.MapGet("/", () => "Running");
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapAssetImportEndpoints();
 app.MapCodeGroupsEndpoints();
+app.MapFallbackToFile("index.html");
 
 app.Run();

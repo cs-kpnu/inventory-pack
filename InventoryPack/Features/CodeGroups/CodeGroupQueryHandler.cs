@@ -8,6 +8,7 @@ public class CodeGroupQueryHandler(AppDbContext db)
 {
     public async Task<CodeGroupListResponse> GetPagedAsync(
         string? search,
+        string? status = null,
         int page = 1,
         int pageSize = 25,
         CancellationToken ct = default)
@@ -16,7 +17,7 @@ public class CodeGroupQueryHandler(AppDbContext db)
         ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(pageSize, 100);
 
-        var (groups, totalCount, hasRejectedRows) = await LoadGroupPageAsync(search, page, pageSize, ct);
+        var (groups, totalCount, hasRejectedRows) = await LoadGroupPageAsync(search, status, page, pageSize, ct);
         if (groups.Count == 0) return new CodeGroupListResponse([], page, pageSize, totalCount, hasRejectedRows);
 
         var groupIds = groups.Select(g => g.Id).ToList();
@@ -52,6 +53,7 @@ public class CodeGroupQueryHandler(AppDbContext db)
 
     private async Task<(List<GroupPageItem> Groups, int TotalCount, bool HasRejectedRows)> LoadGroupPageAsync(
         string? search,
+        string? status,
         int page,
         int pageSize,
         CancellationToken ct)
@@ -63,8 +65,16 @@ public class CodeGroupQueryHandler(AppDbContext db)
             var term = search.Trim();
             query = query.Where(g =>
                 g.Code.Contains(term) ||
-                g.LedgerCodes.Any(lc => lc.LedgerEntry.Name.Contains(term)));
+                g.LedgerCodes.Any(lc =>
+                    lc.LedgerEntry.Name.Contains(term) ||
+                    (lc.LedgerEntry.Mvo != null && lc.LedgerEntry.Mvo.Contains(term)) ||
+                    lc.LedgerEntry.Subaccount.Contains(term)));
         }
+
+        if (string.Equals(status, "unregistered", StringComparison.OrdinalIgnoreCase))
+            query = query.Where(g => !g.Assets.Any());
+        else if (string.Equals(status, "registered", StringComparison.OrdinalIgnoreCase))
+            query = query.Where(g => g.Assets.Any());
 
         var totalCount = await query.CountAsync(ct);
         var hasRejectedRows = await db.RejectedRows.AnyAsync(ct);
