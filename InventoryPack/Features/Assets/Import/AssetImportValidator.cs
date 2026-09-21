@@ -29,62 +29,37 @@ public static partial class AssetImportValidator
             .Select(g => g.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var codeCounters = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var ledgerEntries = new List<LedgerEntry>();
 
         foreach (var row in candidates)
             if (row.InventoryNumbers.Any(conflictingCodes.Contains))
                 rejected.Add(CreateRejected(row, [RejectionReason.DuplicateCode]));
             else
-                ledgerEntries.Add(CreateLedgerEntry(row, codeCounters));
+                ledgerEntries.Add(CreateLedgerEntry(row));
 
         return new ImportResult(ledgerEntries, rejected);
     }
 
-    private static LedgerEntry CreateLedgerEntry(ParsedAssetRow row, Dictionary<string, int> counters)
+    private static LedgerEntry CreateLedgerEntry(ParsedAssetRow row)
     {
-        var qty = row.Quantity!.Value;
         var entry = new LedgerEntry
         {
+            SourceRowNumber = row.RowNumber,
+            SourceTitle = row.RawText,
+            Unit = row.RawUnit,
             Name = row.Name ?? string.Empty,
-            Mvo = row.Mvo ?? string.Empty,
+            Mvo = row.Mvo,
             Subaccount = row.Subaccount ?? string.Empty,
-            Quantity = qty
+            Quantity = row.Quantity!.Value
         };
 
-        if (qty % 1 == 0)
-        {
-            var intQty = (int)qty;
-            var isItemized = row.InventoryNumbers.Count == intQty;
-            for (var i = 0; i < intQty; i++)
+        foreach (var code in row.InventoryNumbers)
+            entry.Codes.Add(new LedgerEntryCode
             {
-                var code = isItemized ? row.InventoryNumbers[i] : row.InventoryNumbers[0];
-                counters.TryGetValue(code, out var current);
-                counters[code] = ++current;
-
-                entry.Assets.Add(new Asset
-                {
-                    InventoryNumber = code,
-                    UnitIndex = current,
-                    LedgerEntry = entry
-                });
-            }
-        }
-        else
-        {
-            foreach (var code in row.InventoryNumbers)
-            {
-                counters.TryGetValue(code, out var current);
-                counters[code] = ++current;
-
-                entry.Assets.Add(new Asset
-                {
-                    InventoryNumber = code,
-                    UnitIndex = current,
-                    LedgerEntry = entry
-                });
-            }
-        }
+                LedgerEntryId = entry.Id,
+                LedgerEntry = entry,
+                Code = code
+            });
 
         return entry;
     }
@@ -102,6 +77,7 @@ public static partial class AssetImportValidator
         {
             RowNumber = row.RowNumber,
             RawText = row.RawText,
+            Unit = row.RawUnit,
             Mvo = row.Mvo,
             Subaccount = row.Subaccount,
             Quantity = row.Quantity
