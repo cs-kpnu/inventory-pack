@@ -65,6 +65,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(a => a.CodeGroupId);
+            entity.HasIndex(a => a.RequestId);
             entity.HasIndex(a => a.PrintedAt);
         });
 

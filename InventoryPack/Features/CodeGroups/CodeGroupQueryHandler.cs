@@ -1,4 +1,5 @@
 using InventoryPack.Data;
+using InventoryPack.Features.Printing;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryPack.Features.CodeGroups;
@@ -38,12 +39,14 @@ public class CodeGroupQueryHandler(AppDbContext db)
         if (header is null) return null;
 
         var sourceRows = await LoadSourceRowsAsync(id, ct);
+        var assets = await LoadAssetsAsync(id, ct);
 
         return new CodeGroupDetailDto(
             header.Id,
             header.Code,
             header.RegisteredAssetCount,
-            sourceRows
+            sourceRows,
+            assets
         );
     }
 
@@ -142,6 +145,30 @@ public class CodeGroupQueryHandler(AppDbContext db)
                 lc.LedgerEntry.Subaccount
             ))
             .ToListAsync(ct);
+    }
+
+    private async Task<List<RegisteredAssetDto>> LoadAssetsAsync(Guid codeGroupId, CancellationToken ct)
+    {
+        var assets = await db.Assets.AsNoTracking()
+            .Where(a => a.CodeGroupId == codeGroupId)
+            .OrderBy(a => a.AllocatedAt)
+            .ThenBy(a => a.Id)
+            .Select(a => new
+            {
+                a.Id,
+                a.AllocatedAt,
+                a.PrintedAt
+            })
+            .ToListAsync(ct);
+
+        return assets
+            .Select(a => new RegisteredAssetDto(
+                a.Id,
+                TagPayloadFormatter.Format(a.Id),
+                a.AllocatedAt,
+                a.PrintedAt
+            ))
+            .ToList();
     }
 
     private sealed record GroupPageItem(

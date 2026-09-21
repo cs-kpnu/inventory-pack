@@ -30,5 +30,18 @@ public record CodeGroupDetailDto(
     Guid Id,
     string Code,
     int RegisteredAssetCount,
-    IReadOnlyList<CodeGroupSourceRowDto> SourceRows
+    IReadOnlyList<CodeGroupSourceRowDto> SourceRows,
+    IReadOnlyList<RegisteredAssetDto> Assets
+);
+
+public record RegisteredAssetDto(
+    Guid Id,
+    string Payload,
+    DateTime AllocatedAt,
+    DateTime? PrintedAt
+);
+
+public record RegisterAssetsRequest(
+    Guid RequestId,
+    int Count
 );

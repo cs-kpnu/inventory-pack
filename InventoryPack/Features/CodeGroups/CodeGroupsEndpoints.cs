@@ -36,5 +36,24 @@ public static class CodeGroupsEndpoints
                     : Results.NotFound();
             })
             .WithSummary("Get code group detail with contributing source rows");
+
+        group.MapPost("/{id:guid}/assets", async (
+                Guid id,
+                RegisterAssetsRequest request,
+                AssetRegistrationHandler handler,
+                CancellationToken ct) =>
+            {
+                var result = await handler.RegisterAsync(id, request, ct);
+                return result switch
+                {
+                    RegisterAssetsResult.Success s => Results.Created($"/api/code-groups/{id}", s.Assets),
+                    RegisterAssetsResult.IdempotentReplay r => Results.Ok(r.Assets),
+                    RegisterAssetsResult.NotFound nf => Results.NotFound(new { error = nf.Message }),
+                    RegisterAssetsResult.Conflict cf => Results.Conflict(new { error = cf.Message }),
+                    RegisterAssetsResult.BadRequest br => Results.BadRequest(new { error = br.Message }),
+                    _ => Results.StatusCode(StatusCodes.Status500InternalServerError)
+                };
+            })
+            .WithSummary("Register physical asset identities under a code group");
     }
 }

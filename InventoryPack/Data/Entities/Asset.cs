@@ -9,6 +9,8 @@ public class Asset
     public Guid CodeGroupId { get; set; }
     public CodeGroup CodeGroup { get; set; } = null!;
 
+    public Guid? RequestId { get; set; }
+
     public DateTime AllocatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? PrintedAt { get; set; }
 }
