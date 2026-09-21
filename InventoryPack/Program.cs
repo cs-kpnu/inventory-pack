@@ -2,6 +2,7 @@ using InventoryPack.Data;
 using InventoryPack.Endpoints;
 using InventoryPack.Features.Assets.Import;
 using InventoryPack.Features.Assets.Import.Excel;
+using InventoryPack.Features.CodeGroups;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddKeyedSingleton<IAssetImporter, ExcelAssetImporter>(".xlsx");
 builder.Services.AddScoped<ImportAssetsHandler>();
+builder.Services.AddScoped<CodeGroupQueryHandler>();
 
 var app = builder.Build();
 
@@ -34,5 +36,6 @@ using (var scope = app.Services.CreateScope())
 
 app.MapGet("/", () => "Running");
 app.MapAssetImportEndpoints();
+app.MapCodeGroupsEndpoints();
 
 app.Run();

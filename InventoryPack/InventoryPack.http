@@ -1,13 +1,14 @@
+@codeGroupId = 00000000-0000-0000-0000-000000000000
+
+### Health: Root check
 GET {{HostAddress}}/
 Accept: text/plain
 
-###
-
+### Health: Database check
 GET {{HostAddress}}/api/health/db
 Accept: application/json
 
-###
-
+### Import: Upload spreadsheet
 POST {{HostAddress}}/api/assets/import
 Content-Type: multipart/form-data; boundary=boundary
 
@@ -20,3 +21,40 @@ Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 
 ###
 
+# ===================================================================
+# Code Groups API
+# ===================================================================
+
+### Code Groups: First page (default 25 items)
+GET {{HostAddress}}/api/code-groups
+Accept: application/json
+
+> {%
+    if (response.body.items && response.body.items.length > 0) {
+        client.global.set("codeGroupId", response.body.items[0].id);
+    }
+%}
+
+### Code Groups: Search by accountant code
+GET {{HostAddress}}/api/code-groups?search=1113&page=1&pageSize=10
+Accept: application/json
+
+### Code Groups: Search by source name
+GET {{HostAddress}}/api/code-groups?search=Стілець&page=1&pageSize=10
+Accept: application/json
+
+### Code Groups: Custom pagination
+GET {{HostAddress}}/api/code-groups?page=2&pageSize=10
+Accept: application/json
+
+### Code Group: Detail with contributing source rows
+GET {{HostAddress}}/api/code-groups/{{codeGroupId}}
+Accept: application/json
+
+### Code Group: Detail (404 Not Found check)
+GET {{HostAddress}}/api/code-groups/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Code Groups: Invalid pagination (400 Bad Request check)
+GET {{HostAddress}}/api/code-groups?page=0&pageSize=25
+Accept: application/json
