@@ -15,6 +15,10 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
+        if (await db.LedgerEntries.AnyAsync(ct))
+            throw new ImportAlreadyExistsException(
+                "An import has already been completed. Repeated imports are not supported yet.");
+
         await db.RejectedRowReasons.ExecuteDeleteAsync(ct);
         await db.RejectedRows.ExecuteDeleteAsync(ct);
 
@@ -24,8 +28,8 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
 
         await tx.CommitAsync(ct);
 
-        return new ImportResponse(result.LedgerEntries.Count, result.TotalAssets, result.RejectedRows.Count);
+        return new ImportResponse(result.LedgerEntries.Count, result.RejectedRows.Count);
     }
 }
 
-public record ImportResponse(int ImportedLedgerEntries, int ImportedAssets, int RejectedRows);
+public record ImportResponse(int ImportedLedgerEntries, int RejectedRows);

@@ -7,8 +7,11 @@ public static class ImportAssetsEndpoint
         app.MapPost("/api/assets/import", async (
                 IFormFile file,
                 ImportAssetsHandler handler,
+                ILoggerFactory loggerFactory,
                 CancellationToken ct) =>
             {
+                var logger = loggerFactory.CreateLogger(typeof(ImportAssetsEndpoint));
+
                 if (file is not { Length: > 0 })
                     return Results.BadRequest("File is missing or empty.");
 
@@ -22,13 +25,24 @@ public static class ImportAssetsEndpoint
                     var response = await handler.HandleAsync(extension, stream, ct);
                     return Results.Ok(response);
                 }
+                catch (ImportAlreadyExistsException ex)
+                {
+                    return Results.Problem(statusCode: StatusCodes.Status409Conflict, detail: ex.Message);
+                }
                 catch (NotSupportedException ex)
                 {
                     return Results.Problem(statusCode: StatusCodes.Status415UnsupportedMediaType, detail: ex.Message);
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest($"Failed to parse file: {ex.Message}");
+                    logger.LogError(ex, "Unexpected error occurred while processing import file '{FileName}'",
+                        file.FileName);
+                    return Results.Problem(statusCode: StatusCodes.Status500InternalServerError,
+                        title: "An unexpected error occurred while processing the import file.");
                 }
             })
             .WithSummary("Import assets from spreadsheet or ledger file")

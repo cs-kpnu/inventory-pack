@@ -8,7 +8,4 @@ namespace InventoryPack.Features.Assets.Import;
 public record ImportResult(
     IReadOnlyList<LedgerEntry> LedgerEntries,
     IReadOnlyList<RejectedRow> RejectedRows
-)
-{
-    public int TotalAssets => LedgerEntries.Sum(e => e.Assets.Count);
-}
+);
