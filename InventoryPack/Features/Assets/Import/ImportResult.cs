@@ -6,6 +6,6 @@ namespace InventoryPack.Features.Assets.Import;
 ///     Represents the result of an import operation.
 /// </summary>
 public record ImportResult(
-    IReadOnlyList<LedgerEntry> LedgerEntries,
+    IReadOnlyList<ValidatedAssetRow> ValidatedRows,
     IReadOnlyList<RejectedRow> RejectedRows
 );

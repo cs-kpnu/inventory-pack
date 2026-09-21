@@ -1,4 +1,5 @@
 using InventoryPack.Data;
+using InventoryPack.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryPack.Features.Assets.Import;
@@ -22,13 +23,38 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
         await db.RejectedRowReasons.ExecuteDeleteAsync(ct);
         await db.RejectedRows.ExecuteDeleteAsync(ct);
 
-        await db.LedgerEntries.AddRangeAsync(result.LedgerEntries, ct);
+        var ledgerEntries = new List<LedgerEntry>(result.ValidatedRows.Count);
+        foreach (var row in result.ValidatedRows)
+        {
+            var entry = new LedgerEntry
+            {
+                SourceRowNumber = row.SourceRowNumber,
+                SourceTitle = row.SourceTitle,
+                Unit = row.Unit,
+                Name = row.Name,
+                Mvo = row.Mvo,
+                Subaccount = row.Subaccount,
+                Quantity = row.Quantity
+            };
+
+            foreach (var code in row.InventoryNumbers)
+                entry.Codes.Add(new LedgerEntryCode
+                {
+                    LedgerEntryId = entry.Id,
+                    LedgerEntry = entry,
+                    Code = code
+                });
+
+            ledgerEntries.Add(entry);
+        }
+
+        await db.LedgerEntries.AddRangeAsync(ledgerEntries, ct);
         await db.RejectedRows.AddRangeAsync(result.RejectedRows, ct);
         await db.SaveChangesAsync(ct);
 
         await tx.CommitAsync(ct);
 
-        return new ImportResponse(result.LedgerEntries.Count, result.RejectedRows.Count);
+        return new ImportResponse(ledgerEntries.Count, result.RejectedRows.Count);
     }
 }
 

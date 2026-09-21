@@ -29,39 +29,29 @@ public static partial class AssetImportValidator
             .Select(g => g.Key)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var ledgerEntries = new List<LedgerEntry>();
+        var validatedRows = new List<ValidatedAssetRow>();
 
         foreach (var row in candidates)
             if (row.InventoryNumbers.Any(conflictingCodes.Contains))
                 rejected.Add(CreateRejected(row, [RejectionReason.DuplicateCode]));
             else
-                ledgerEntries.Add(CreateLedgerEntry(row));
+                validatedRows.Add(CreateValidatedRow(row));
 
-        return new ImportResult(ledgerEntries, rejected);
+        return new ImportResult(validatedRows, rejected);
     }
 
-    private static LedgerEntry CreateLedgerEntry(ParsedAssetRow row)
+    private static ValidatedAssetRow CreateValidatedRow(ParsedAssetRow row)
     {
-        var entry = new LedgerEntry
-        {
-            SourceRowNumber = row.RowNumber,
-            SourceTitle = row.RawText,
-            Unit = row.RawUnit,
-            Name = row.Name ?? string.Empty,
-            Mvo = row.Mvo,
-            Subaccount = row.Subaccount ?? string.Empty,
-            Quantity = row.Quantity!.Value
-        };
-
-        foreach (var code in row.InventoryNumbers)
-            entry.Codes.Add(new LedgerEntryCode
-            {
-                LedgerEntryId = entry.Id,
-                LedgerEntry = entry,
-                Code = code
-            });
-
-        return entry;
+        return new ValidatedAssetRow(
+            row.RowNumber,
+            row.RawText,
+            row.RawUnit,
+            row.Name ?? string.Empty,
+            row.Mvo,
+            row.Subaccount ?? string.Empty,
+            row.Quantity!.Value,
+            row.InventoryNumbers
+        );
     }
 
     private static string NormalizeName(string? name)
