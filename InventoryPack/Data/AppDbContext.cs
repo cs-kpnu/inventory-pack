@@ -66,7 +66,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             entity.HasIndex(a => a.CodeGroupId);
             entity.HasIndex(a => a.RequestId);
-            entity.HasIndex(a => a.PrintedAt);
         });
 
         modelBuilder.Entity<RejectedRow>(entity =>

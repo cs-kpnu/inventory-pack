@@ -81,8 +81,7 @@ public class AssetRegistrationHandler(AppDbContext db)
             .Select(a => new RegisteredAssetDto(
                 a.Id,
                 TagPayloadFormatter.Format(a.Id),
-                a.AllocatedAt,
-                a.PrintedAt
+                a.AllocatedAt
             ))
             .ToList();
     }

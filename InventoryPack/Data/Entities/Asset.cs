@@ -12,5 +12,4 @@ public class Asset
     public Guid? RequestId { get; set; }
 
     public DateTime AllocatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? PrintedAt { get; set; }
 }

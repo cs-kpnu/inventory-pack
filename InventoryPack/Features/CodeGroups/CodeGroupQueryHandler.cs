@@ -156,8 +156,7 @@ public class CodeGroupQueryHandler(AppDbContext db)
             .Select(a => new
             {
                 a.Id,
-                a.AllocatedAt,
-                a.PrintedAt
+                a.AllocatedAt
             })
             .ToListAsync(ct);
 
@@ -165,8 +164,7 @@ public class CodeGroupQueryHandler(AppDbContext db)
             .Select(a => new RegisteredAssetDto(
                 a.Id,
                 TagPayloadFormatter.Format(a.Id),
-                a.AllocatedAt,
-                a.PrintedAt
+                a.AllocatedAt
             ))
             .ToList();
     }

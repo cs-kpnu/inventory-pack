@@ -37,8 +37,7 @@ public record CodeGroupDetailDto(
 public record RegisteredAssetDto(
     Guid Id,
     string Payload,
-    DateTime AllocatedAt,
-    DateTime? PrintedAt
+    DateTime AllocatedAt
 );
 
 public record RegisterAssetsRequest(
