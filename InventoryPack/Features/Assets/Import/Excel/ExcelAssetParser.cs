@@ -47,6 +47,34 @@ public static class ExcelAssetParser
         return true;
     }
 
+    private static bool IsBlankRow(ExcelAssetRow row)
+    {
+        return string.IsNullOrWhiteSpace(row.Title)
+               && row.Quantity is null
+               && string.IsNullOrWhiteSpace(row.Mvo)
+               && string.IsNullOrWhiteSpace(row.Subaccount)
+               && string.IsNullOrWhiteSpace(row.Unit);
+    }
+
+    private static bool IsReportHeaderOrDivider(ExcelAssetRow row)
+    {
+        if (IsBlankRow(row))
+            return true;
+
+        var title = row.Title?.Trim();
+        if (string.IsNullOrEmpty(title))
+            return false;
+
+        if (title.Contains("Найменування", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return title.StartsWith("---") ||
+               title.StartsWith("Всього", StringComparison.OrdinalIgnoreCase) ||
+               title.StartsWith("- Всього", StringComparison.OrdinalIgnoreCase) ||
+               title.StartsWith("Разом", StringComparison.OrdinalIgnoreCase) ||
+               title.StartsWith("- Разом", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static List<ParsedAssetRow> Parse(Stream stream)
     {
         var rows = new List<ParsedAssetRow>();
@@ -56,15 +84,16 @@ public static class ExcelAssetParser
         {
             rowNumber++;
 
-            if (row.Quantity is null || string.IsNullOrWhiteSpace(row.Title) || row.Title.StartsWith('-') ||
-                row.Title.Contains("Найменування"))
+            if (IsReportHeaderOrDivider(row))
                 continue;
 
-            var title = row.Title!.Trim();
+            var rawTitle = row.Title ?? string.Empty;
+            var title = rawTitle.Trim();
             var name = title;
             IReadOnlyList<string> codes = [];
 
-            if (TryExtractCodeSuffix(title, out var extractedName, out var extractedCodes))
+            if (!string.IsNullOrEmpty(title) &&
+                TryExtractCodeSuffix(title, out var extractedName, out var extractedCodes))
             {
                 name = extractedName;
                 codes = extractedCodes;
@@ -72,7 +101,7 @@ public static class ExcelAssetParser
 
             rows.Add(new ParsedAssetRow(
                 rowNumber,
-                row.Title!,
+                rawTitle,
                 name,
                 codes,
                 row.Mvo?.Trim(),
