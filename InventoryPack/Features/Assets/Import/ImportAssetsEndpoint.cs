@@ -24,7 +24,7 @@ public static class ImportAssetsEndpoint
                 }
                 catch (NotSupportedException ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return Results.Problem(statusCode: StatusCodes.Status415UnsupportedMediaType, detail: ex.Message);
                 }
                 catch (Exception ex)
                 {
