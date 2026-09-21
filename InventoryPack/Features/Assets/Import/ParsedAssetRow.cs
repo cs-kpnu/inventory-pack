@@ -10,5 +10,6 @@ public record ParsedAssetRow(
     IReadOnlyList<string> InventoryNumbers,
     string? Mvo,
     string? Subaccount,
-    decimal? Quantity
+    decimal? Quantity,
+    string? RawUnit = null
 );

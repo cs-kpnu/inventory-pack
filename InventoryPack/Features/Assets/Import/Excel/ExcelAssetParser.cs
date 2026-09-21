@@ -51,7 +51,8 @@ public static partial class ExcelAssetParser
                 codes,
                 row.Mvo?.Trim(),
                 row.Subaccount?.Trim(),
-                row.Quantity
+                row.Quantity,
+                row.Unit?.Trim()
             ));
         }
 
