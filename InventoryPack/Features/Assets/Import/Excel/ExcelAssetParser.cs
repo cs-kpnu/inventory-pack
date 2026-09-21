@@ -1,15 +1,51 @@
-using System.Text.RegularExpressions;
 using MiniExcelLibs;
 
 namespace InventoryPack.Features.Assets.Import.Excel;
 
-public static partial class ExcelAssetParser
+public static class ExcelAssetParser
 {
-    [GeneratedRegex(@"^(.*?)\s*\(\s*([^)]+?)\s*\)\s*$", RegexOptions.Singleline)]
-    private static partial Regex TrailingParenthesesRegex();
+    public static bool TryExtractCodeSuffix(
+        string title,
+        out string name,
+        out IReadOnlyList<string> codes)
+    {
+        name = title;
+        codes = [];
 
-    [GeneratedRegex(@"\b\d{6,}\b")]
-    private static partial Regex CodeRegex();
+        var trimmed = title.Trim();
+        if (!trimmed.EndsWith(')'))
+            return false;
+
+        var openParenIndex = trimmed.LastIndexOf('(');
+        if (openParenIndex < 0)
+            return false;
+
+        var suffixContent = trimmed.Substring(openParenIndex + 1, trimmed.Length - openParenIndex - 2);
+        if (string.IsNullOrWhiteSpace(suffixContent))
+            return false;
+
+        var tokenStrings = suffixContent.Split(',');
+        var extractedCodes = new List<string>(tokenStrings.Length);
+
+        foreach (var rawToken in tokenStrings)
+        {
+            var token = rawToken.Trim();
+            if (token.Length is < 6 or > 32)
+                return false;
+
+            if (!token.All(char.IsAsciiDigit))
+                return false;
+
+            extractedCodes.Add(token);
+        }
+
+        if (extractedCodes.Count == 0)
+            return false;
+
+        name = trimmed[..openParenIndex].Trim();
+        codes = extractedCodes;
+        return true;
+    }
 
     public static List<ParsedAssetRow> Parse(Stream stream)
     {
@@ -25,23 +61,13 @@ public static partial class ExcelAssetParser
                 continue;
 
             var title = row.Title!.Trim();
-            var match = TrailingParenthesesRegex().Match(title);
-
             var name = title;
             IReadOnlyList<string> codes = [];
 
-            if (match.Success)
+            if (TryExtractCodeSuffix(title, out var extractedName, out var extractedCodes))
             {
-                var extractedCodes = CodeRegex()
-                    .Matches(match.Groups[2].Value)
-                    .Select(m => m.Value)
-                    .ToList();
-
-                if (extractedCodes.Count > 0)
-                {
-                    name = match.Groups[1].Value.Trim();
-                    codes = extractedCodes;
-                }
+                name = extractedName;
+                codes = extractedCodes;
             }
 
             rows.Add(new ParsedAssetRow(
