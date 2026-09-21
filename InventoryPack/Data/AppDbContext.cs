@@ -6,6 +6,7 @@ namespace InventoryPack.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
+    public DbSet<LedgerEntryCode> LedgerEntryCodes => Set<LedgerEntryCode>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<RejectedRow> RejectedRows => Set<RejectedRow>();
     public DbSet<RejectedRowReason> RejectedRowReasons => Set<RejectedRowReason>();
@@ -18,12 +19,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             entity.HasKey(e => e.Id);
 
+            entity.Property(e => e.SourceTitle).HasMaxLength(4000);
+            entity.Property(e => e.Unit).HasMaxLength(50);
             entity.Property(e => e.Subaccount).HasMaxLength(32);
             entity.Property(e => e.Mvo).HasMaxLength(150);
             entity.Property(e => e.Name).HasMaxLength(500);
             entity.Property(e => e.Quantity).HasPrecision(18, 4);
 
+            entity.HasMany(e => e.Codes)
+                .WithOne(c => c.LedgerEntry)
+                .HasForeignKey(c => c.LedgerEntryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(e => new { e.Mvo, e.Subaccount });
+        });
+
+        modelBuilder.Entity<LedgerEntryCode>(entity =>
+        {
+            entity.HasKey(c => new { c.LedgerEntryId, c.Code });
+            entity.Property(c => c.Code).HasMaxLength(32);
+            entity.HasIndex(c => c.Code);
         });
 
         modelBuilder.Entity<Asset>(entity =>
@@ -47,6 +62,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasKey(r => r.Id);
 
             entity.Property(r => r.RawText).HasMaxLength(2000);
+            entity.Property(r => r.Unit).HasMaxLength(50);
             entity.Property(r => r.Subaccount).HasMaxLength(32);
             entity.Property(r => r.Mvo).HasMaxLength(150);
             entity.Property(r => r.Quantity).HasPrecision(18, 4);

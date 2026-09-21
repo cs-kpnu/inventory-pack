@@ -8,6 +8,7 @@ public class RejectedRow
     public Guid Id { get; set; } = Guid.NewGuid();
     public int RowNumber { get; set; }
     public required string RawText { get; set; }
+    public string? Unit { get; set; }
     public List<RejectedRowReason> Reasons { get; set; } = [];
     public string? Subaccount { get; set; }
     public string? Mvo { get; set; }
