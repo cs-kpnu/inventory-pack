@@ -23,6 +23,8 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
         await db.RejectedRowReasons.ExecuteDeleteAsync(ct);
         await db.RejectedRows.ExecuteDeleteAsync(ct);
 
+        var groupsByCode = await ResolveCodeGroupsAsync(result.ValidatedRows, ct);
+
         var ledgerEntries = new List<LedgerEntry>(result.ValidatedRows.Count);
         foreach (var row in result.ValidatedRows)
         {
@@ -38,12 +40,16 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
             };
 
             foreach (var code in row.InventoryNumbers)
+            {
+                var group = groupsByCode[code];
                 entry.Codes.Add(new LedgerEntryCode
                 {
                     LedgerEntryId = entry.Id,
                     LedgerEntry = entry,
-                    Code = code
+                    CodeGroupId = group.Id,
+                    CodeGroup = group
                 });
+            }
 
             ledgerEntries.Add(entry);
         }
@@ -55,6 +61,34 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
         await tx.CommitAsync(ct);
 
         return new ImportResponse(ledgerEntries.Count, result.RejectedRows.Count);
+    }
+
+    private async Task<Dictionary<string, CodeGroup>> ResolveCodeGroupsAsync(
+        IReadOnlyList<ValidatedAssetRow> validatedRows,
+        CancellationToken ct)
+    {
+        var allCodes = validatedRows
+            .SelectMany(r => r.InventoryNumbers)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var groupsByCode = await db.CodeGroups
+            .Where(g => allCodes.Contains(g.Code))
+            .ToDictionaryAsync(g => g.Code, StringComparer.OrdinalIgnoreCase, ct);
+
+        var newGroups = new List<CodeGroup>();
+        foreach (var code in allCodes)
+            if (!groupsByCode.TryGetValue(code, out var group))
+            {
+                group = new CodeGroup { Code = code };
+                groupsByCode[code] = group;
+                newGroups.Add(group);
+            }
+
+        if (newGroups.Count > 0)
+            await db.CodeGroups.AddRangeAsync(newGroups, ct);
+
+        return groupsByCode;
     }
 }
 

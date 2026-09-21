@@ -7,6 +7,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
     public DbSet<LedgerEntryCode> LedgerEntryCodes => Set<LedgerEntryCode>();
+    public DbSet<CodeGroup> CodeGroups => Set<CodeGroup>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<RejectedRow> RejectedRows => Set<RejectedRow>();
     public DbSet<RejectedRowReason> RejectedRowReasons => Set<RejectedRowReason>();
@@ -26,34 +27,44 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.Property(e => e.Name).HasMaxLength(500);
             entity.Property(e => e.Quantity).HasPrecision(18, 4);
 
-            entity.HasMany(e => e.Codes)
-                .WithOne(c => c.LedgerEntry)
-                .HasForeignKey(c => c.LedgerEntryId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             entity.HasIndex(e => new { e.Mvo, e.Subaccount });
+        });
+
+        modelBuilder.Entity<CodeGroup>(entity =>
+        {
+            entity.HasKey(g => g.Id);
+
+            entity.Property(g => g.Code).HasMaxLength(32);
+            entity.HasIndex(g => g.Code).IsUnique();
         });
 
         modelBuilder.Entity<LedgerEntryCode>(entity =>
         {
-            entity.HasKey(c => new { c.LedgerEntryId, c.Code });
-            entity.Property(c => c.Code).HasMaxLength(32);
-            entity.HasIndex(c => c.Code);
+            entity.HasKey(c => new { c.LedgerEntryId, c.CodeGroupId });
+
+            entity.HasOne(c => c.LedgerEntry)
+                .WithMany(e => e.Codes)
+                .HasForeignKey(c => c.LedgerEntryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.CodeGroup)
+                .WithMany(g => g.LedgerCodes)
+                .HasForeignKey(c => c.CodeGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(c => c.CodeGroupId);
         });
 
         modelBuilder.Entity<Asset>(entity =>
         {
             entity.HasKey(a => a.Id);
 
-            entity.Property(a => a.InventoryNumber).HasMaxLength(32);
+            entity.HasOne(a => a.CodeGroup)
+                .WithMany(g => g.Assets)
+                .HasForeignKey(a => a.CodeGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(a => a.LedgerEntry)
-                .WithMany(e => e.Assets)
-                .HasForeignKey(a => a.LedgerEntryId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasIndex(a => new { a.InventoryNumber, a.UnitIndex }).IsUnique();
-            entity.HasIndex(a => a.InventoryNumber);
+            entity.HasIndex(a => a.CodeGroupId);
             entity.HasIndex(a => a.PrintedAt);
         });
 

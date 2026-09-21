@@ -1,14 +1,14 @@
 namespace InventoryPack.Data.Entities;
 
 /// <summary>
-///     Represents a single physical inventory asset.
+///     Represents a single physical inventory asset with a permanent identity.
 /// </summary>
 public class Asset
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid LedgerEntryId { get; set; }
-    public LedgerEntry LedgerEntry { get; set; } = null!;
-    public required string InventoryNumber { get; set; }
-    public int UnitIndex { get; set; } = 1;
+    public Guid CodeGroupId { get; set; }
+    public CodeGroup CodeGroup { get; set; } = null!;
+
+    public DateTime AllocatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? PrintedAt { get; set; }
 }

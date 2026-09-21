@@ -15,5 +15,4 @@ public class LedgerEntry
     public decimal Quantity { get; set; }
 
     public List<LedgerEntryCode> Codes { get; set; } = [];
-    public List<Asset> Assets { get; set; } = [];
 }
