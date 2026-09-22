@@ -23,41 +23,44 @@ Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 ###
 
 # ===================================================================
-# Code Groups API
+# Ledger rows and Code Groups API
 # ===================================================================
 
-### Code Groups: First page (default 25 items)
-GET {{HostAddress}}/api/code-groups
+### Ledger rows: First page (default 25 rows)
+GET {{HostAddress}}/api/ledger-entries
 Accept: application/json
 
 > {%
     if (response.body.items && response.body.items.length > 0) {
-        client.global.set("codeGroupId", response.body.items[0].id);
+        if (response.body.items[0].codes.length > 0) {
+            client.global.set("codeGroupId", response.body.items[0].codes[0].id);
+        }
+        client.global.set("ledgerEntryId", response.body.items[0].id);
     }
 %}
 
-### Code Groups: Search by accountant code
-GET {{HostAddress}}/api/code-groups?search=1113&page=1&pageSize=10
+### Ledger rows: Search by accountant code
+GET {{HostAddress}}/api/ledger-entries?search=1113&page=1&pageSize=10
 Accept: application/json
 
-### Code Groups: Search by source name
-GET {{HostAddress}}/api/code-groups?search=Стілець&page=1&pageSize=10
+### Ledger rows: Search by source name
+GET {{HostAddress}}/api/ledger-entries?search=Стілець&page=1&pageSize=10
 Accept: application/json
 
-### Code Groups: Custom pagination
-GET {{HostAddress}}/api/code-groups?page=2&pageSize=10
+### Ledger rows: Custom pagination
+GET {{HostAddress}}/api/ledger-entries?page=2&pageSize=10
 Accept: application/json
 
-### Code Group: Detail with contributing source rows
-GET {{HostAddress}}/api/code-groups/{{codeGroupId}}
+### Ledger row: Detail with codes and registered assets
+GET {{HostAddress}}/api/ledger-entries/{{ledgerEntryId}}
 Accept: application/json
 
-### Code Group: Detail (404 Not Found check)
-GET {{HostAddress}}/api/code-groups/00000000-0000-0000-0000-000000000000
+### Ledger row: Detail (404 Not Found check)
+GET {{HostAddress}}/api/ledger-entries/00000000-0000-0000-0000-000000000000
 Accept: application/json
 
-### Code Groups: Invalid pagination (400 Bad Request check)
-GET {{HostAddress}}/api/code-groups?page=0&pageSize=25
+### Ledger rows: Invalid pagination (400 Bad Request check)
+GET {{HostAddress}}/api/ledger-entries?page=0&pageSize=25
 Accept: application/json
 
 ###
@@ -67,37 +70,41 @@ Accept: application/json
 # ===================================================================
 
 ### Asset Registration: Register physical assets under code group
-POST {{HostAddress}}/api/code-groups/{{codeGroupId}}/assets
+POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
+  "codeGroupId": "{{codeGroupId}}",
   "requestId": "{{assetRequestId}}",
   "count": 3
 }
 
 ### Asset Registration: Conflicting retry (same RequestId with different count -> 409 Conflict)
-POST {{HostAddress}}/api/code-groups/{{codeGroupId}}/assets
+POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
+  "codeGroupId": "{{codeGroupId}}",
   "requestId": "{{assetRequestId}}",
   "count": 5
 }
 
 ### Asset Registration: Invalid count boundary (400 Bad Request check)
-POST {{HostAddress}}/api/code-groups/{{codeGroupId}}/assets
+POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
+  "codeGroupId": "{{codeGroupId}}",
   "requestId": "22222222-2222-2222-2222-222222222222",
   "count": 0
 }
 
 ### Asset Registration: Non-existent code group (404 Not Found check)
-POST {{HostAddress}}/api/code-groups/00000000-0000-0000-0000-000000000000/assets
+POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
+  "codeGroupId": "00000000-0000-0000-0000-000000000000",
   "requestId": "33333333-3333-3333-3333-333333333333",
   "count": 2
 }
