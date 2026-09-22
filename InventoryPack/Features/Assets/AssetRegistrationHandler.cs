@@ -30,6 +30,11 @@ public class AssetRegistrationHandler(AppDbContext db)
         if (request.RequestId == Guid.Empty)
             return new RegisterAssetsResult.BadRequest("RequestId cannot be empty.");
 
+        var normalizedMvo = MvoNormalizer.Normalize(request.RegisteredForMvo);
+        if (normalizedMvo is not null && normalizedMvo.Length > MvoNormalizer.MaxLength)
+            return new RegisterAssetsResult.BadRequest(
+                $"RegisteredForMvo cannot exceed {MvoNormalizer.MaxLength} characters.");
+
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
         var existing = await db.Assets
@@ -40,7 +45,9 @@ public class AssetRegistrationHandler(AppDbContext db)
         {
             await tx.RollbackAsync(ct);
 
-            if (existing.Count == request.Count && existing.All(a => a.CodeGroupId == request.CodeGroupId))
+            if (existing.Count == request.Count &&
+                existing.All(a => a.CodeGroupId == request.CodeGroupId &&
+                                  MvoNormalizer.Equals(a.RegisteredForMvo, normalizedMvo)))
                 return new RegisterAssetsResult.IdempotentReplay(MapToDtos(existing));
 
             return new RegisterAssetsResult.Conflict(
@@ -62,6 +69,7 @@ public class AssetRegistrationHandler(AppDbContext db)
                 Id = Guid.NewGuid(),
                 CodeGroupId = request.CodeGroupId,
                 RequestId = request.RequestId,
+                RegisteredForMvo = normalizedMvo,
                 AllocatedAt = now
             });
 
@@ -80,7 +88,8 @@ public class AssetRegistrationHandler(AppDbContext db)
             .Select(a => new RegisteredAssetDto(
                 a.Id,
                 TagPayloadFormatter.Format(a.Id),
-                DateTime.SpecifyKind(a.AllocatedAt, DateTimeKind.Utc)
+                DateTime.SpecifyKind(a.AllocatedAt, DateTimeKind.Utc),
+                a.RegisteredForMvo
             ))
             .ToList();
     }

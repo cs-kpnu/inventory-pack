@@ -5,7 +5,9 @@ namespace InventoryPack.Features.LedgerEntries;
 public record LedgerEntryCodeDto(
     Guid Id,
     string Code,
-    int RegisteredAssetCount,
+    int GroupRegisteredAssetCount,
+    int MvoRegisteredAssetCount,
+    int UnassignedAssetCount,
     int SourceRowCount
 );
 
@@ -31,6 +33,9 @@ public record LedgerEntryListResponse(
 public record LedgerEntryDetailCodeDto(
     Guid Id,
     string Code,
+    int GroupRegisteredAssetCount,
+    int MvoRegisteredAssetCount,
+    int UnassignedAssetCount,
     int SourceRowCount,
     IReadOnlyList<RegisteredAssetDto> Assets
 );

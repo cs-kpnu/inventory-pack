@@ -33,6 +33,10 @@ public sealed class AppDbContext : DbContext
             .HasDbFunction(typeof(SqliteCustomFunctions).GetMethod(nameof(SqliteCustomFunctions.ContainsIgnoreCase))!)
             .HasName("contains_ignore_case");
 
+        modelBuilder
+            .HasDbFunction(typeof(SqliteCustomFunctions).GetMethod(nameof(SqliteCustomFunctions.EqualsIgnoreCase))!)
+            .HasName("equals_ignore_case");
+
         modelBuilder.Entity<LedgerEntry>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -75,6 +79,8 @@ public sealed class AppDbContext : DbContext
         modelBuilder.Entity<Asset>(entity =>
         {
             entity.HasKey(a => a.Id);
+
+            entity.Property(a => a.RegisteredForMvo).HasMaxLength(150);
 
             entity.HasOne(a => a.CodeGroup)
                 .WithMany(g => g.Assets)
