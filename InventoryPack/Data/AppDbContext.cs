@@ -1,10 +1,17 @@
+using System.Data;
 using InventoryPack.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace InventoryPack.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public sealed class AppDbContext : DbContext
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+        var conn = Database.GetDbConnection();
+        if (conn.State == ConnectionState.Open) SqliteCustomFunctions.Register(conn);
+    }
+
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
     public DbSet<LedgerEntryCode> LedgerEntryCodes => Set<LedgerEntryCode>();
     public DbSet<CodeGroup> CodeGroups => Set<CodeGroup>();
@@ -12,9 +19,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<RejectedRow> RejectedRows => Set<RejectedRow>();
     public DbSet<RejectedRowReason> RejectedRowReasons => Set<RejectedRowReason>();
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.AddInterceptors(SqliteConnectionInterceptor.Instance);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder
+            .HasDbFunction(typeof(SqliteCustomFunctions).GetMethod(nameof(SqliteCustomFunctions.ContainsIgnoreCase))!)
+            .HasName("contains_ignore_case");
 
         modelBuilder.Entity<LedgerEntry>(entity =>
         {

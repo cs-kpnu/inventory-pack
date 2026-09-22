@@ -64,11 +64,11 @@ public class CodeGroupQueryHandler(AppDbContext db)
         {
             var term = search.Trim();
             query = query.Where(g =>
-                g.Code.Contains(term) ||
+                SqliteCustomFunctions.ContainsIgnoreCase(g.Code, term) ||
                 g.LedgerCodes.Any(lc =>
-                    lc.LedgerEntry.Name.Contains(term) ||
-                    (lc.LedgerEntry.Mvo != null && lc.LedgerEntry.Mvo.Contains(term)) ||
-                    lc.LedgerEntry.Subaccount.Contains(term)));
+                    SqliteCustomFunctions.ContainsIgnoreCase(lc.LedgerEntry.Name, term) ||
+                    (lc.LedgerEntry.Mvo != null && SqliteCustomFunctions.ContainsIgnoreCase(lc.LedgerEntry.Mvo, term)) ||
+                    SqliteCustomFunctions.ContainsIgnoreCase(lc.LedgerEntry.Subaccount, term)));
         }
 
         if (string.Equals(status, "unregistered", StringComparison.OrdinalIgnoreCase))
@@ -174,7 +174,7 @@ public class CodeGroupQueryHandler(AppDbContext db)
             .Select(a => new RegisteredAssetDto(
                 a.Id,
                 TagPayloadFormatter.Format(a.Id),
-                a.AllocatedAt
+                DateTime.SpecifyKind(a.AllocatedAt, DateTimeKind.Utc)
             ))
             .ToList();
     }
