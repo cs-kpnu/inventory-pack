@@ -15,6 +15,7 @@ public static class LedgerEntriesEndpoints
 
     private static async Task<IResult> GetPagedAsync(
         string? search,
+        string? status,
         int? page,
         int? pageSize,
         LedgerEntryQueryHandler handler,
@@ -26,7 +27,14 @@ public static class LedgerEntriesEndpoints
         if (pageNumber < 1 || effectivePageSize is < 1 or > 100)
             return Results.BadRequest("Page must be >= 1 and pageSize must be between 1 and 100.");
 
-        var response = await handler.GetPagedAsync(search, pageNumber, effectivePageSize, ct);
+        var normalizedStatus = status?.Trim().ToLowerInvariant();
+        if (!string.IsNullOrEmpty(normalizedStatus) &&
+            normalizedStatus is not ("all" or "unregistered" or "partial" or "registered"))
+            return Results.BadRequest("Status must be one of: 'all', 'unregistered', 'partial', 'registered'.");
+
+        var filterStatus = normalizedStatus is "registered" or "unregistered" or "partial" ? normalizedStatus : null;
+
+        var response = await handler.GetPagedAsync(search, filterStatus, pageNumber, effectivePageSize, ct);
         return Results.Ok(response);
     }
 

@@ -9,6 +9,7 @@ public class LedgerEntryQueryHandler(AppDbContext db)
 {
     public async Task<LedgerEntryListResponse> GetPagedAsync(
         string? search,
+        string? status = null,
         int page = 1,
         int pageSize = 25,
         CancellationToken ct = default)
@@ -28,6 +29,16 @@ public class LedgerEntryQueryHandler(AppDbContext db)
                 SqliteCustomFunctions.ContainsIgnoreCase(e.Subaccount, term) ||
                 e.Codes.Any(c => SqliteCustomFunctions.ContainsIgnoreCase(c.CodeGroup.Code, term)));
         }
+
+        query = status switch
+        {
+            "registered" => query.Where(e => e.Codes.Any() && e.Codes.All(c => c.CodeGroup.Assets.Count > 0)),
+            "partial" => query.Where(e =>
+                e.Codes.Any(c => c.CodeGroup.Assets.Count > 0) &&
+                e.Codes.Any(c => c.CodeGroup.Assets.Count == 0)),
+            "unregistered" => query.Where(e => e.Codes.All(c => c.CodeGroup.Assets.Count == 0)),
+            _ => query
+        };
 
         var totalCount = await query.CountAsync(ct);
         var hasRejectedRows = await db.RejectedRows.AnyAsync(ct);
