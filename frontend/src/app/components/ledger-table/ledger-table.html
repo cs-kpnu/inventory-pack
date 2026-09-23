@@ -6,8 +6,48 @@
   <table class="w-full table-fixed text-left border-collapse text-xs">
     <thead class="sticky top-0 bg-zinc-50 border-b border-zinc-200 z-10">
     <tr class="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">
-      <th class="w-9 pl-3 pr-1"><span class="sr-only">Вибір</span></th>
-      <th class="py-2.5 pl-4 pr-2 w-20 text-right">#</th>
+      <th class="relative w-9 p-0">
+        <label class="absolute inset-0 flex cursor-pointer select-none items-center justify-center pl-1">
+          <input
+            (change)="onVisibleRowsCheck($event)"
+            [attr.aria-label]="
+              areAllVisibleRowsChecked()
+                ? 'Зняти вибір з усіх рядків на сторінці'
+                : 'Вибрати всі рядки на сторінці'
+            "
+            [checked]="areAllVisibleRowsChecked()"
+            [disabled]="ledgerService.entries().length === 0"
+            [indeterminate]="areAnyVisibleRowsChecked() && !areAllVisibleRowsChecked()"
+            class="h-3.5 w-3.5 cursor-pointer accent-zinc-900 disabled:cursor-default"
+            type="checkbox"
+          />
+        </label>
+      </th>
+      <th class="py-2.5 pl-4 pr-2 w-20">
+        <div class="flex items-center justify-between">
+          <button
+            (click)="toggleVisibleRows()"
+            [attr.aria-label]="
+              (areAllVisibleRowsExpanded() ? 'Згорнути' : 'Розгорнути') +
+              ' всі рядки на сторінці'
+            "
+            [disabled]="ledgerService.entries().length === 0"
+            [title]="
+              (areAllVisibleRowsExpanded() ? 'Згорнути' : 'Розгорнути') +
+              ' всі рядки на сторінці'
+            "
+            class="rounded p-0.5 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-700 disabled:opacity-40"
+            type="button"
+          >
+            <svg
+              [class.rotate-90]="areAllVisibleRowsExpanded()"
+              [size]="13"
+              lucideChevronRight
+            ></svg>
+          </button>
+          <span>#</span>
+        </div>
+      </th>
       <th class="py-2.5 px-3 w-24">Рахунок</th>
       <th class="py-2.5 px-3">Найменування</th>
       <th class="py-2.5 px-3 w-48">МВО</th>

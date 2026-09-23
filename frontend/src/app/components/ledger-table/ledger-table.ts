@@ -48,6 +48,26 @@ export class LedgerTable {
     this.ledgerService.setRowChecked(item, (event.target as HTMLInputElement).checked);
   }
 
+  areAllVisibleRowsChecked(): boolean {
+    const entries = this.ledgerService.entries();
+    return entries.length > 0 && entries.every((entry) => this.ledgerService.isRowChecked(entry));
+  }
+
+  areAnyVisibleRowsChecked(): boolean {
+    return this.ledgerService
+      .entries()
+      .some((entry) =>
+        entry.codes.some((code) => this.ledgerService.isCodeChecked(entry.id, code.id)),
+      );
+  }
+
+  onVisibleRowsCheck(event: Event): void {
+    this.ledgerService.setRowsChecked(
+      this.ledgerService.entries(),
+      (event.target as HTMLInputElement).checked,
+    );
+  }
+
   onRowCheckboxClick(event: MouseEvent): void {
     event.stopPropagation();
     if (this.suppressSelectionClick) event.preventDefault();
@@ -130,6 +150,26 @@ export class LedgerTable {
 
   isRowExpanded(id: string): boolean {
     return this.expandedRows().has(id);
+  }
+
+  areAllVisibleRowsExpanded(): boolean {
+    const entries = this.ledgerService.entries();
+    return entries.length > 0 && entries.every((entry) => this.expandedRows().has(entry.id));
+  }
+
+  toggleVisibleRows(): void {
+    const entries = this.ledgerService.entries();
+    if (entries.length === 0) return;
+
+    const collapse = entries.every((entry) => this.expandedRows().has(entry.id));
+    this.expandedRows.update((rows) => {
+      const next = new Set(rows);
+      for (const entry of entries) {
+        if (collapse) next.delete(entry.id);
+        else next.add(entry.id);
+      }
+      return next;
+    });
   }
 
   toggleRow(item: LedgerEntrySummaryDto): void {
