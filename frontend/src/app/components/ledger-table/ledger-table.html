@@ -20,7 +20,9 @@
     <tbody class="divide-y divide-zinc-100">
       @for (item of ledgerService.entries(); track item.id) {
         <tr
-          (click)="toggleRow(item)"
+          (click)="onLedgerRowClick(item, $event)"
+          (pointerdown)="onRowPointerDown(item, $event)"
+          (pointerenter)="onRowPointerEnter(item, $event)"
           [attr.data-focused]="isFocused(item.id)"
           [class]="
             isRowExpanded(item.id)
@@ -33,7 +35,8 @@
         >
           <td (click)="$event.stopPropagation()" class="relative w-9 p-0">
             <label
-              class="absolute inset-x-0 -top-px -bottom-px flex cursor-pointer items-center justify-center pl-1"
+              (click)="onRowCheckboxClick($event)"
+              class="absolute inset-x-0 -top-px -bottom-px flex cursor-pointer select-none items-center justify-center pl-1"
             >
               <input
                 (change)="onRowCheck(item, $event)"
@@ -135,15 +138,17 @@
         @if (isRowExpanded(item.id)) {
           @for (code of item.codes; track code.id; let odd = $odd) {
             <tr
-              (click)="toggleCodeSelection(item.id, code.id)"
+              (click)="onCodeRowClick(item.id, code.id, $event)"
+              (pointerdown)="onCodePointerDown(item.id, code.id, $event)"
+              (pointerenter)="onCodePointerEnter(item.id, code.id, $event)"
               [class]="odd ? 'bg-zinc-100' : 'bg-white'"
               class="cursor-pointer border-b border-zinc-200 text-zinc-900"
             >
               <td></td>
               <td class="relative p-0">
                 <label
-                  (click)="$event.stopPropagation()"
-                  class="absolute inset-x-0 -top-px -bottom-px flex cursor-pointer items-center justify-center"
+                  (click)="onCodeCheckboxClick($event)"
+                  class="absolute inset-x-0 -top-px -bottom-px flex cursor-pointer select-none items-center justify-center"
                 >
                   <input
                     (change)="onCodeCheck(item.id, code.id, $event)"

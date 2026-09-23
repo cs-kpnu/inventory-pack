@@ -5,16 +5,13 @@ import {
   LedgerEntryDetailDto,
   LedgerEntryListResponse,
   LedgerEntrySummaryDto,
-  StatusFilter,
+  StatusFilter
 } from '../models/ledger-entry.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LedgerEntryService {
-  private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api/ledger-entries';
-
   // State signals
   readonly entries = signal<LedgerEntrySummaryDto[]>([]);
   readonly totalCount = signal<number>(0);
@@ -27,26 +24,23 @@ export class LedgerEntryService {
   readonly hasRejectedRows = signal<boolean>(false);
   readonly selectedId = signal<string | null>(null);
   readonly selectedCodesByEntry = signal<Map<string, Set<string>>>(new Map());
-
   // Computed state
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize())));
-
   readonly rangeStart = computed(() =>
     this.totalCount() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1,
   );
-
   readonly rangeEnd = computed(() => Math.min(this.page() * this.pageSize(), this.totalCount()));
-
   readonly selectedEntry = computed(() => {
     const id = this.selectedId();
     if (!id) return null;
     return this.entries().find((e) => e.id === id) ?? null;
   });
-
   readonly selectedRowCount = computed(() => this.selectedCodesByEntry().size);
   readonly selectedCodeCount = computed(() =>
     Array.from(this.selectedCodesByEntry().values()).reduce((count, codes) => count + codes.size, 0),
   );
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = '/api/ledger-entries';
 
   getEntryDetail(id: string): Observable<LedgerEntryDetailDto> {
     return this.http.get<LedgerEntryDetailDto>(`${this.apiUrl}/${id}`);
@@ -116,31 +110,53 @@ export class LedgerEntryService {
   }
 
   setRowChecked(entry: LedgerEntrySummaryDto, checked: boolean): void {
+    this.setRowsChecked([entry], checked);
+  }
+
+  setRowsChecked(entries: readonly LedgerEntrySummaryDto[], checked: boolean): void {
+    if (entries.length === 0) return;
     this.selectedCodesByEntry.update((selection) => {
       const next = new Map(selection);
-      if (checked) {
-        next.set(entry.id, new Set(entry.codes.map((code) => code.id)));
-      } else {
-        next.delete(entry.id);
+      for (const entry of entries) {
+        if (checked) {
+          next.set(entry.id, new Set(entry.codes.map((code) => code.id)));
+        } else {
+          next.delete(entry.id);
+        }
       }
       return next;
     });
   }
 
   setCodeChecked(entryId: string, codeId: string, checked: boolean): void {
+    this.setCodesChecked([{ entryId, codeId }], checked);
+  }
+
+  setCodesChecked(
+    selections: ReadonlyArray<{ entryId: string; codeId: string }>,
+    checked: boolean,
+  ): void {
+    if (selections.length === 0) return;
+
     this.selectedCodesByEntry.update((selection) => {
       const next = new Map(selection);
-      const codes = new Set(next.get(entryId) ?? []);
-      if (checked) {
-        codes.add(codeId);
-      } else {
-        codes.delete(codeId);
+
+      for (const { entryId, codeId } of selections) {
+        const codes = new Set(next.get(entryId) ?? []);
+
+        if (checked) {
+          codes.add(codeId);
+        } else {
+          codes.delete(codeId);
+        }
+
+        if (codes.size > 0) {
+          next.set(entryId, codes);
+        } else {
+          next.delete(entryId);
+        }
       }
-      if (codes.size > 0) {
-        next.set(entryId, codes);
-      } else {
-        next.delete(entryId);
-      }
+
       return next;
     });
   }

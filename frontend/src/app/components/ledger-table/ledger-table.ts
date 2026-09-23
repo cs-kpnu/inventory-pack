@@ -14,6 +14,10 @@ interface DetailState {
   error: string | null;
 }
 
+type SelectionTarget =
+  | { kind: 'row'; key: string; entry: LedgerEntrySummaryDto }
+  | { kind: 'code'; key: string; entryId: string; codeId: string };
+
 @Component({
   selector: 'app-ledger-table',
   imports: [CommonModule, LucideChevronRight, LucideInbox],
@@ -21,29 +25,107 @@ interface DetailState {
 })
 export class LedgerTable {
   readonly ledgerService = inject(LedgerEntryService);
-  private readonly elRef = inject(ElementRef);
   readonly expandedRows = signal<Set<string>>(new Set());
   readonly expandedCodes = signal<Set<string>>(new Set());
   readonly detailStates = signal<Map<string, DetailState>>(new Map());
+  private readonly elRef = inject(ElementRef);
+  private selectionDrag: {
+    startKey: string;
+    checked: boolean;
+    visited: Set<string>;
+  } | null = null;
+  private suppressSelectionClick = false;
 
   isFocused(id: string): boolean {
     return this.ledgerService.selectedId() === id;
   }
 
   onRowCheck(item: LedgerEntrySummaryDto, event: Event): void {
+    if (this.suppressSelectionClick) {
+      (event.target as HTMLInputElement).checked = this.ledgerService.isRowChecked(item);
+      return;
+    }
     this.ledgerService.setRowChecked(item, (event.target as HTMLInputElement).checked);
   }
 
+  onRowCheckboxClick(event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.suppressSelectionClick) event.preventDefault();
+  }
+
+  onLedgerRowClick(item: LedgerEntrySummaryDto, event: MouseEvent): void {
+    if (this.suppressSelectionClick || window.getSelection()?.toString()) {
+      event.preventDefault();
+      return;
+    }
+    this.toggleRow(item);
+  }
+
+  onRowPointerDown(item: LedgerEntrySummaryDto, event: PointerEvent): void {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    const target = event.target as Element;
+    const checkboxCell = (event.currentTarget as HTMLTableRowElement).cells[0];
+    if (target.closest('td') !== checkboxCell) return;
+    this.beginSelectionDrag(`row:${item.id}`, !this.ledgerService.isRowChecked(item));
+  }
+
+  onRowPointerEnter(item: LedgerEntrySummaryDto, event: PointerEvent): void {
+    this.extendSelectionDrag(`row:${item.id}`, event);
+  }
+
+  @HostListener('window:pointerup')
+  endSelectionDrag(): void {
+    this.selectionDrag = null;
+    if (this.suppressSelectionClick) {
+      setTimeout(() => (this.suppressSelectionClick = false));
+    }
+  }
+
+  @HostListener('window:pointercancel')
+  cancelSelectionDrag(): void {
+    this.endSelectionDrag();
+  }
+
   onCodeCheck(entryId: string, codeId: string, event: Event): void {
+    if (this.suppressSelectionClick) {
+      (event.target as HTMLInputElement).checked = this.ledgerService.isCodeChecked(
+        entryId,
+        codeId,
+      );
+      return;
+    }
     this.ledgerService.setCodeChecked(entryId, codeId, (event.target as HTMLInputElement).checked);
   }
 
-  toggleCodeSelection(entryId: string, codeId: string): void {
+  onCodeCheckboxClick(event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.suppressSelectionClick) event.preventDefault();
+  }
+
+  onCodeRowClick(entryId: string, codeId: string, event: MouseEvent): void {
+    if (this.suppressSelectionClick || window.getSelection()?.toString()) {
+      event.preventDefault();
+      return;
+    }
     this.ledgerService.setCodeChecked(
       entryId,
       codeId,
       !this.ledgerService.isCodeChecked(entryId, codeId),
     );
+  }
+
+  onCodePointerDown(entryId: string, codeId: string, event: PointerEvent): void {
+    if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    const checkboxCell = (event.currentTarget as HTMLTableRowElement).cells[1];
+    if ((event.target as Element).closest('td') !== checkboxCell) return;
+    this.beginSelectionDrag(
+      `code:${entryId}:${codeId}`,
+      !this.ledgerService.isCodeChecked(entryId, codeId),
+    );
+  }
+
+  onCodePointerEnter(entryId: string, codeId: string, event: PointerEvent): void {
+    this.extendSelectionDrag(`code:${entryId}:${codeId}`, event);
   }
 
   isRowExpanded(id: string): boolean {
@@ -131,9 +213,67 @@ export class LedgerTable {
     }
   }
 
+  private beginSelectionDrag(startKey: string, checked: boolean): void {
+    this.selectionDrag = { startKey, checked, visited: new Set<string>() };
+  }
+
+  private extendSelectionDrag(targetKey: string, event: PointerEvent): void {
+    const drag = this.selectionDrag;
+    if (!drag || (event.buttons & 1) === 0) return;
+
+    const targets = this.visibleSelectionTargets();
+    const startIndex = targets.findIndex((target) => target.key === drag.startKey);
+    const endIndex = targets.findIndex((target) => target.key === targetKey);
+    if (startIndex < 0 || endIndex < 0 || startIndex === endIndex) return;
+
+    this.suppressSelectionClick = true;
+    const newlyVisited = targets
+      .slice(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex) + 1)
+      .filter((target) => !drag.visited.has(target.key));
+
+    for (const target of newlyVisited) drag.visited.add(target.key);
+
+    this.ledgerService.setRowsChecked(
+      newlyVisited
+        .filter(
+          (target): target is Extract<SelectionTarget, { kind: 'row' }> => target.kind === 'row',
+        )
+        .map((target) => target.entry),
+      drag.checked,
+    );
+
+    this.ledgerService.setCodesChecked(
+      newlyVisited
+        .filter(
+          (target): target is Extract<SelectionTarget, { kind: 'code' }> => target.kind === 'code',
+        )
+        .map((target) => ({ entryId: target.entryId, codeId: target.codeId })),
+      drag.checked,
+    );
+  }
+
+  private visibleSelectionTargets(): SelectionTarget[] {
+    const targets: SelectionTarget[] = [];
+    for (const entry of this.ledgerService.entries()) {
+      targets.push({ kind: 'row', key: `row:${entry.id}`, entry });
+      if (this.isRowExpanded(entry.id)) {
+        for (const code of entry.codes) {
+          targets.push({
+            kind: 'code',
+            key: `code:${entry.id}:${code.id}`,
+            entryId: entry.id,
+            codeId: code.id,
+          });
+        }
+      }
+    }
+    return targets;
+  }
+
   private scrollSelectedIntoView(): void {
     setTimeout(() => {
       const selectedEl = this.elRef.nativeElement.querySelector('tr[data-focused="true"]');
+
       if (selectedEl) {
         selectedEl.scrollIntoView({ block: 'nearest' });
       }
