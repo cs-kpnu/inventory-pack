@@ -11,7 +11,8 @@ COPY ["InventoryPack.csproj", "./"]
 RUN dotnet restore "InventoryPack.csproj"
 COPY . .
 WORKDIR "/src/"
-RUN dotnet build "./InventoryPack.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet format "./InventoryPack.csproj" --no-restore --verify-no-changes --severity warn
+RUN dotnet build "./InventoryPack.csproj" --no-restore -c $BUILD_CONFIGURATION -o /app/build --warnaserror
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release

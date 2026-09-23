@@ -6,7 +6,9 @@ public static class MvoNormalizer
 
     public static string? Normalize(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
         return value.Trim();
     }
 
@@ -14,8 +16,13 @@ public static class MvoNormalizer
     {
         var normA = Normalize(a);
         var normB = Normalize(b);
-        if (normA is null && normB is null) return true;
-        if (normA is null || normB is null) return false;
+
+        if (normA is null && normB is null)
+            return true;
+
+        if (normA is null || normB is null)
+            return false;
+
         return string.Equals(normA, normB, StringComparison.OrdinalIgnoreCase);
     }
 }

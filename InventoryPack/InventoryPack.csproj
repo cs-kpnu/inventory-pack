@@ -4,7 +4,11 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>10.0-recommended</AnalysisLevel>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
 
     <ItemGroup>

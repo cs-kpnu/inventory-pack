@@ -47,7 +47,8 @@ public class LedgerEntryQueryHandler(AppDbContext db)
     public async Task<LedgerEntryDetailDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         var row = await db.LedgerEntries.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
-        if (row is null) return null;
+        if (row is null)
+            return null;
 
         var codes = await db.LedgerEntryCodes.AsNoTracking()
             .Where(c => c.LedgerEntryId == id)
@@ -66,9 +67,11 @@ public class LedgerEntryQueryHandler(AppDbContext db)
 
     private static IQueryable<LedgerEntry> FilterBySearch(IQueryable<LedgerEntry> query, string? search)
     {
-        if (string.IsNullOrWhiteSpace(search)) return query;
+        if (string.IsNullOrWhiteSpace(search))
+            return query;
 
         var term = search.Trim();
+
         return query.Where(e =>
             SqliteCustomFunctions.ContainsIgnoreCase(e.Name, term) ||
             (e.Mvo != null && SqliteCustomFunctions.ContainsIgnoreCase(e.Mvo, term)) ||

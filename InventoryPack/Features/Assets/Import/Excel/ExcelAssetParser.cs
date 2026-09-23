@@ -68,7 +68,7 @@ public static class ExcelAssetParser
         if (title.Contains("Найменування", StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return title.StartsWith("---") ||
+        return title.StartsWith("---", StringComparison.Ordinal) ||
                title.StartsWith("Всього", StringComparison.OrdinalIgnoreCase) ||
                title.StartsWith("- Всього", StringComparison.OrdinalIgnoreCase) ||
                title.StartsWith("Разом", StringComparison.OrdinalIgnoreCase) ||

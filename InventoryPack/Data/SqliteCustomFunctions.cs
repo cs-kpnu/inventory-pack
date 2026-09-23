@@ -17,19 +17,23 @@ public static class SqliteCustomFunctions
 
     public static void Register(DbConnection connection)
     {
-        if (connection is SqliteConnection sqlite)
-        {
-            sqlite.CreateFunction("contains_ignore_case", (string? source, string? pattern) =>
-            {
-                if (source is null || pattern is null) return false;
-                return source.Contains(pattern, StringComparison.OrdinalIgnoreCase);
-            });
+        if (connection is not SqliteConnection sqlite)
+            return;
 
-            sqlite.CreateFunction("equals_ignore_case", (string? a, string? b) =>
-            {
-                if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return false;
-                return string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
-            });
-        }
+        sqlite.CreateFunction("contains_ignore_case", (string? source, string? pattern) =>
+        {
+            if (source is null || pattern is null)
+                return false;
+
+            return source.Contains(pattern, StringComparison.OrdinalIgnoreCase);
+        });
+
+        sqlite.CreateFunction("equals_ignore_case", (string? a, string? b) =>
+        {
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b))
+                return false;
+
+            return string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
+        });
     }
 }

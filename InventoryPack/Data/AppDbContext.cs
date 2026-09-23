@@ -9,7 +9,8 @@ public sealed class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
         var conn = Database.GetDbConnection();
-        if (conn.State == ConnectionState.Open) SqliteCustomFunctions.Register(conn);
+        if (conn.State == ConnectionState.Open)
+            SqliteCustomFunctions.Register(conn);
     }
 
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();

@@ -36,12 +36,8 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
 app.MapAssetImportEndpoints();
 app.MapAssetsEndpoints();
 app.MapLedgerEntriesEndpoints();
-app.MapFallbackToFile("index.html");
 
 app.Run();

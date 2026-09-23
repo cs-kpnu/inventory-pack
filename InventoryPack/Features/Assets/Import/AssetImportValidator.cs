@@ -74,11 +74,7 @@ public static partial class AssetImportValidator
         };
 
         foreach (var reason in reasons.Distinct())
-            rejected.Reasons.Add(new RejectedRowReason
-            {
-                Reason = reason,
-                RejectedRow = rejected
-            });
+            rejected.Reasons.Add(new RejectedRowReason { Reason = reason, RejectedRow = rejected });
 
         return rejected;
     }

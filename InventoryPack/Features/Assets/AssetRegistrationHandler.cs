@@ -45,9 +45,8 @@ public class AssetRegistrationHandler(AppDbContext db)
         {
             await tx.RollbackAsync(ct);
 
-            if (existing.Count == request.Count &&
-                existing.All(a => a.CodeGroupId == request.CodeGroupId &&
-                                  MvoNormalizer.Equals(a.RegisteredForMvo, normalizedMvo)))
+            if (existing.Count == request.Count && existing.All(a =>
+                    a.CodeGroupId == request.CodeGroupId && MvoNormalizer.Equals(a.RegisteredForMvo, normalizedMvo)))
                 return new RegisterAssetsResult.IdempotentReplay(MapToDtos(existing));
 
             return new RegisterAssetsResult.Conflict(

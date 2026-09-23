@@ -1,6 +1,6 @@
 namespace InventoryPack.Features.Assets.Import;
 
-public static class ImportAssetsEndpoint
+public static partial class ImportAssetsEndpoint
 {
     public static void MapAssetImportEndpoints(this IEndpointRouteBuilder app)
     {
@@ -39,8 +39,7 @@ public static class ImportAssetsEndpoint
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Unexpected error occurred while processing import file '{FileName}'",
-                        file.FileName);
+                    LogImportFailure(logger, ex, file.FileName);
                     return Results.Problem(statusCode: StatusCodes.Status500InternalServerError,
                         title: "An unexpected error occurred while processing the import file.");
                 }
@@ -48,4 +47,8 @@ public static class ImportAssetsEndpoint
             .WithSummary("Import assets from spreadsheet or ledger file")
             .DisableAntiforgery();
     }
+
+    [LoggerMessage(Level = LogLevel.Error,
+        Message = "Unexpected error occurred while processing import file '{FileName}'")]
+    private static partial void LogImportFailure(ILogger logger, Exception exception, string fileName);
 }

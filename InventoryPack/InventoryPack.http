@@ -60,7 +60,7 @@ GET {{HostAddress}}/api/ledger-entries?status=unregistered&page=1&pageSize=10
 Accept: application/json
 
 ### Ledger rows: Custom pagination
-GET {{HostAddress}}/api/ledger-entries?page=2&pageSize=10
+GET {{HostAddress}}/api/ledger-entries?page=2&pageSize=100
 Accept: application/json
 
 ### Ledger row: Detail with codes and registered assets
@@ -90,10 +90,10 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "{{assetRequestId}}",
-  "count": 3,
-  "registeredForMvo": "Петренко О.В."
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "{{assetRequestId}}",
+    "count": 3,
+    "registeredForMvo": "Петренко О.В."
 }
 
 ### Asset Registration: Idempotent replay (same RequestId, same parameters -> 200 OK)
@@ -101,10 +101,10 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "{{assetRequestId}}",
-  "count": 3,
-  "registeredForMvo": "  петренко о.в.  "
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "{{assetRequestId}}",
+    "count": 3,
+    "registeredForMvo": "  петренко о.в.  "
 }
 
 ### Asset Registration: Conflicting retry (same RequestId with different count -> 409 Conflict)
@@ -112,10 +112,10 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "{{assetRequestId}}",
-  "count": 5,
-  "registeredForMvo": "Петренко О.В."
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "{{assetRequestId}}",
+    "count": 5,
+    "registeredForMvo": "Петренко О.В."
 }
 
 ### Asset Registration: Conflicting retry (same RequestId with different MVO -> 409 Conflict)
@@ -123,10 +123,10 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "{{assetRequestId}}",
-  "count": 3,
-  "registeredForMvo": "Іванов І.І."
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "{{assetRequestId}}",
+    "count": 3,
+    "registeredForMvo": "Іванов І.І."
 }
 
 ### Asset Registration: Register assets with explicit null MVO
@@ -134,10 +134,10 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "44444444-4444-4444-4444-444444444444",
-  "count": 2,
-  "registeredForMvo": null
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "44444444-4444-4444-4444-444444444444",
+    "count": 2,
+    "registeredForMvo": null
 }
 
 ### Asset Registration: Missing registeredForMvo property (400 Bad Request check)
@@ -145,9 +145,9 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "55555555-5555-5555-5555-555555555555",
-  "count": 1
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "55555555-5555-5555-5555-555555555555",
+    "count": 1
 }
 
 ### Asset Registration: Invalid count boundary (400 Bad Request check)
@@ -155,10 +155,10 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "22222222-2222-2222-2222-222222222222",
-  "count": 0,
-  "registeredForMvo": "Петренко О.В."
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "22222222-2222-2222-2222-222222222222",
+    "count": 0,
+    "registeredForMvo": "Петренко О.В."
 }
 
 ### Asset Registration: Overlength MVO > 150 chars (400 Bad Request check)
@@ -166,10 +166,10 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "{{codeGroupId}}",
-  "requestId": "66666666-6666-6666-6666-666666666666",
-  "count": 1,
-  "registeredForMvo": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    "codeGroupId": "{{codeGroupId}}",
+    "requestId": "66666666-6666-6666-6666-666666666666",
+    "count": 1,
+    "registeredForMvo": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 }
 
 ### Asset Registration: Non-existent code group (404 Not Found check)
@@ -177,8 +177,8 @@ POST {{HostAddress}}/api/assets
 Content-Type: application/json
 
 {
-  "codeGroupId": "00000000-0000-0000-0000-000000000000",
-  "requestId": "33333333-3333-3333-3333-333333333333",
-  "count": 2,
-  "registeredForMvo": "Петренко О.В."
+    "codeGroupId": "00000000-0000-0000-0000-000000000000",
+    "requestId": "33333333-3333-3333-3333-333333333333",
+    "count": 2,
+    "registeredForMvo": "Петренко О.В."
 }
