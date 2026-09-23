@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import {
   LedgerEntryListResponse,
@@ -23,19 +23,22 @@ export class LedgerEntryService {
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly hasRejectedRows = signal<boolean>(false);
+  readonly selectedId = signal<string | null>(null);
 
   // Computed state
-  readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.totalCount() / this.pageSize()))
-  );
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize())));
 
   readonly rangeStart = computed(() =>
-    this.totalCount() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1
+    this.totalCount() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1,
   );
 
-  readonly rangeEnd = computed(() =>
-    Math.min(this.page() * this.pageSize(), this.totalCount())
-  );
+  readonly rangeEnd = computed(() => Math.min(this.page() * this.pageSize(), this.totalCount()));
+
+  readonly selectedEntry = computed(() => {
+    const id = this.selectedId();
+    if (!id) return null;
+    return this.entries().find((e) => e.id === id) ?? null;
+  });
 
   loadEntries(): void {
     this.loading.set(true);
@@ -63,16 +66,55 @@ export class LedgerEntryService {
         this.pageSize.set(response.pageSize);
         this.hasRejectedRows.set(response.hasRejectedRows);
         this.loading.set(false);
+
+        // Retain or select first if available
+        const currentSelected = this.selectedId();
+        const stillPresent = response.items.some((i) => i.id === currentSelected);
+        if (!stillPresent && response.items.length > 0) {
+          this.selectedId.set(response.items[0].id);
+        } else if (response.items.length === 0) {
+          this.selectedId.set(null);
+        }
       },
       error: (err) => {
         const message =
-          err?.error?.message ||
-          err?.message ||
-          'Помилка під час завантаження об’єктів';
+          err?.error?.message || err?.message || 'Помилка під час завантаження об’єктів';
         this.error.set(message);
         this.loading.set(false);
       },
     });
+  }
+
+  selectEntry(id: string | null): void {
+    this.selectedId.set(id);
+  }
+
+  selectNext(): void {
+    const list = this.entries();
+    if (list.length === 0) return;
+    const current = this.selectedId();
+    if (!current) {
+      this.selectedId.set(list[0].id);
+      return;
+    }
+    const idx = list.findIndex((e) => e.id === current);
+    if (idx >= 0 && idx < list.length - 1) {
+      this.selectedId.set(list[idx + 1].id);
+    }
+  }
+
+  selectPrevious(): void {
+    const list = this.entries();
+    if (list.length === 0) return;
+    const current = this.selectedId();
+    if (!current) {
+      this.selectedId.set(list[0].id);
+      return;
+    }
+    const idx = list.findIndex((e) => e.id === current);
+    if (idx > 0) {
+      this.selectedId.set(list[idx - 1].id);
+    }
   }
 
   setSearch(query: string): void {
