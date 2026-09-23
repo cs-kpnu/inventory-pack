@@ -237,3 +237,11 @@ riderModule.iml
 *.db-wal
 *.sqlite
 *.sqlite3
+
+# Frontend & Node
+**/node_modules/
+**/dist/
+**/.angular/
+frontend/.angular/
+frontend/dist/
+frontend/node_modules/
