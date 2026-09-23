@@ -20,6 +20,19 @@ import { StatusFilterBar } from '../status-filter/status-filter';
       </div>
 
       <div class="flex items-center gap-3 text-xs text-zinc-600">
+        @if (ledgerService.selectedCodeCount() > 0) {
+          <span class="text-zinc-600">
+            Вибрано кодів:
+            <span class="font-semibold text-zinc-950">{{ ledgerService.selectedCodeCount() }}</span>
+          </span>
+          <button
+            type="button"
+            (click)="ledgerService.clearSelection()"
+            class="cursor-pointer rounded border border-zinc-300 bg-white px-2 py-1 font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-700"
+          >
+            Скинути
+          </button>
+        }
         <span>
           Всього:
           <span class="font-bold text-zinc-950">{{ ledgerService.totalCount() | number }}</span>

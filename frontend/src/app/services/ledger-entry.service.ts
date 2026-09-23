@@ -1,6 +1,8 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import {
+  LedgerEntryDetailDto,
   LedgerEntryListResponse,
   LedgerEntrySummaryDto,
   StatusFilter,
@@ -24,6 +26,7 @@ export class LedgerEntryService {
   readonly error = signal<string | null>(null);
   readonly hasRejectedRows = signal<boolean>(false);
   readonly selectedId = signal<string | null>(null);
+  readonly selectedCodesByEntry = signal<Map<string, Set<string>>>(new Map());
 
   // Computed state
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize())));
@@ -39,6 +42,15 @@ export class LedgerEntryService {
     if (!id) return null;
     return this.entries().find((e) => e.id === id) ?? null;
   });
+
+  readonly selectedRowCount = computed(() => this.selectedCodesByEntry().size);
+  readonly selectedCodeCount = computed(() =>
+    Array.from(this.selectedCodesByEntry().values()).reduce((count, codes) => count + codes.size, 0),
+  );
+
+  getEntryDetail(id: string): Observable<LedgerEntryDetailDto> {
+    return this.http.get<LedgerEntryDetailDto>(`${this.apiUrl}/${id}`);
+  }
 
   loadEntries(): void {
     this.loading.set(true);
@@ -87,6 +99,54 @@ export class LedgerEntryService {
 
   selectEntry(id: string | null): void {
     this.selectedId.set(id);
+  }
+
+  isRowChecked(entry: LedgerEntrySummaryDto): boolean {
+    const selectedCodes = this.selectedCodesByEntry().get(entry.id);
+    return selectedCodes !== undefined && entry.codes.every((code) => selectedCodes.has(code.id));
+  }
+
+  isRowPartiallyChecked(entry: LedgerEntrySummaryDto): boolean {
+    const selectedCodes = this.selectedCodesByEntry().get(entry.id);
+    return selectedCodes !== undefined && selectedCodes.size > 0 && !this.isRowChecked(entry);
+  }
+
+  isCodeChecked(entryId: string, codeId: string): boolean {
+    return this.selectedCodesByEntry().get(entryId)?.has(codeId) ?? false;
+  }
+
+  setRowChecked(entry: LedgerEntrySummaryDto, checked: boolean): void {
+    this.selectedCodesByEntry.update((selection) => {
+      const next = new Map(selection);
+      if (checked) {
+        next.set(entry.id, new Set(entry.codes.map((code) => code.id)));
+      } else {
+        next.delete(entry.id);
+      }
+      return next;
+    });
+  }
+
+  setCodeChecked(entryId: string, codeId: string, checked: boolean): void {
+    this.selectedCodesByEntry.update((selection) => {
+      const next = new Map(selection);
+      const codes = new Set(next.get(entryId) ?? []);
+      if (checked) {
+        codes.add(codeId);
+      } else {
+        codes.delete(codeId);
+      }
+      if (codes.size > 0) {
+        next.set(entryId, codes);
+      } else {
+        next.delete(entryId);
+      }
+      return next;
+    });
+  }
+
+  clearSelection(): void {
+    this.selectedCodesByEntry.set(new Map());
   }
 
   selectNext(): void {
