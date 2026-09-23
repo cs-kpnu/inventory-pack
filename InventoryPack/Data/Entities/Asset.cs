@@ -13,5 +13,7 @@ public class Asset
 
     public string? RegisteredForMvo { get; set; }
 
+    public Guid? RegisteredFromLedgerEntryId { get; set; }
+
     public DateTime AllocatedAt { get; set; } = DateTime.UtcNow;
 }

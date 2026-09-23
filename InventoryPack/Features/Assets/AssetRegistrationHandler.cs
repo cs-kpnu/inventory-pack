@@ -30,10 +30,11 @@ public class AssetRegistrationHandler(AppDbContext db)
         if (request.RequestId == Guid.Empty)
             return new RegisterAssetsResult.BadRequest("RequestId cannot be empty.");
 
-        var normalizedMvo = MvoNormalizer.Normalize(request.RegisteredForMvo);
-        if (normalizedMvo is not null && normalizedMvo.Length > MvoNormalizer.MaxLength)
-            return new RegisterAssetsResult.BadRequest(
-                $"RegisteredForMvo cannot exceed {MvoNormalizer.MaxLength} characters.");
+        if (request.LedgerEntryId == Guid.Empty)
+            return new RegisterAssetsResult.BadRequest("LedgerEntryId cannot be empty.");
+
+        if (request.CodeGroupId == Guid.Empty)
+            return new RegisterAssetsResult.BadRequest("CodeGroupId cannot be empty.");
 
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
@@ -45,20 +46,41 @@ public class AssetRegistrationHandler(AppDbContext db)
         {
             await tx.RollbackAsync(ct);
 
-            if (existing.Count == request.Count && existing.All(a =>
-                    a.CodeGroupId == request.CodeGroupId && MvoNormalizer.Equals(a.RegisteredForMvo, normalizedMvo)))
+            if (existing.Count == request.Count &&
+                existing.All(a => a.CodeGroupId == request.CodeGroupId &&
+                                  a.RegisteredFromLedgerEntryId == request.LedgerEntryId))
                 return new RegisterAssetsResult.IdempotentReplay(MapToDtos(existing));
 
             return new RegisterAssetsResult.Conflict(
                 $"RequestId '{request.RequestId}' has already been used with different parameters.");
         }
 
-        var groupExists = await db.CodeGroups.AnyAsync(g => g.Id == request.CodeGroupId, ct);
-        if (!groupExists)
+        var ledgerEntry = await db.LedgerEntries
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == request.LedgerEntryId, ct);
+
+        if (ledgerEntry is null)
         {
             await tx.RollbackAsync(ct);
-            return new RegisterAssetsResult.NotFound($"CodeGroup with ID '{request.CodeGroupId}' was not found.");
+            return new RegisterAssetsResult.NotFound($"LedgerEntry with ID '{request.LedgerEntryId}' was not found.");
         }
+
+        var linkExists = await db.LedgerEntryCodes
+            .AnyAsync(lec => lec.LedgerEntryId == request.LedgerEntryId && lec.CodeGroupId == request.CodeGroupId, ct);
+
+        if (!linkExists)
+        {
+            await tx.RollbackAsync(ct);
+
+            var groupExists = await db.CodeGroups.AnyAsync(g => g.Id == request.CodeGroupId, ct);
+            if (!groupExists)
+                return new RegisterAssetsResult.NotFound($"CodeGroup with ID '{request.CodeGroupId}' was not found.");
+
+            return new RegisterAssetsResult.BadRequest(
+                $"CodeGroup '{request.CodeGroupId}' is not associated with LedgerEntry '{request.LedgerEntryId}'.");
+        }
+
+        var normalizedMvo = MvoNormalizer.Normalize(ledgerEntry.Mvo);
 
         var now = DateTime.UtcNow;
         var newAssets = new List<Asset>(request.Count);
@@ -69,6 +91,7 @@ public class AssetRegistrationHandler(AppDbContext db)
                 CodeGroupId = request.CodeGroupId,
                 RequestId = request.RequestId,
                 RegisteredForMvo = normalizedMvo,
+                RegisteredFromLedgerEntryId = request.LedgerEntryId,
                 AllocatedAt = now
             });
 

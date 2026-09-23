@@ -1,10 +1,8 @@
-using System.Text.Json.Serialization;
-
 namespace InventoryPack.Features.Assets;
 
 public record RegisterAssetsRequest(
+    Guid LedgerEntryId,
     Guid CodeGroupId,
     Guid RequestId,
-    int Count,
-    [property: JsonRequired] string? RegisteredForMvo
+    int Count
 );
