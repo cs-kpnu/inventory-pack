@@ -11,28 +11,7 @@ interface StatusOption {
 @Component({
   selector: 'app-status-filter',
   imports: [CommonModule],
-  template: `
-    <div
-      class="flex items-center gap-1 text-xs font-medium"
-      role="group"
-      aria-label="Фільтр за статусом"
-    >
-      @for (option of options; track option.value) {
-        <button
-          type="button"
-          (click)="onSelect(option.value)"
-          [class]="
-            isActive(option.value)
-              ? 'bg-zinc-900 text-white'
-              : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
-          "
-          class="px-3 py-1.5 rounded-md transition-colors cursor-pointer whitespace-nowrap"
-        >
-          {{ option.label }}
-        </button>
-      }
-    </div>
-  `,
+  templateUrl: './status-filter.html',
 })
 export class StatusFilterBar {
   readonly options: StatusOption[] = [
