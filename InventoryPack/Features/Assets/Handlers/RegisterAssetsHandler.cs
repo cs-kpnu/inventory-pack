@@ -3,7 +3,7 @@ using InventoryPack.Data.Entities;
 using InventoryPack.Features.Printing;
 using Microsoft.EntityFrameworkCore;
 
-namespace InventoryPack.Features.Assets;
+namespace InventoryPack.Features.Assets.Handlers;
 
 public abstract record RegisterAssetsResult
 {

@@ -1,6 +1,7 @@
 using InventoryPack.Data;
 using InventoryPack.Endpoints;
 using InventoryPack.Features.Assets;
+using InventoryPack.Features.Assets.Handlers;
 using InventoryPack.Features.Assets.Import;
 using InventoryPack.Features.Assets.Import.Excel;
 using InventoryPack.Features.LedgerEntries;
@@ -42,7 +43,6 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
-app.MapAssetImportEndpoints();
 app.MapAssetsEndpoints();
 app.MapLedgerEntriesEndpoints();
 app.MapRejectedRowsEndpoints();
