@@ -1,0 +1,233 @@
+<!-- Modal Overlay & Dialog for Screen -->
+<div
+  (click)="requestDismiss()"
+  class="print-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+>
+  <div
+    (click)="$event.stopPropagation()"
+    class="print-dialog-modal bg-white rounded-lg shadow-xl border border-[#D7DCE2] w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden"
+  >
+    <!-- Header -->
+    <div
+      class="print-dialog-header flex items-center justify-between px-6 py-4 border-b border-[#D7DCE2] bg-white shrink-0"
+    >
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-md bg-[#F2F4F7] text-[#202124]">
+          <svg [size]="18" lucidePrinter></svg>
+        </div>
+        <h2 class="text-base font-semibold text-[#202124]">Друк етикеток</h2>
+      </div>
+
+      <button
+        (click)="requestDismiss()"
+        class="p-1.5 text-[#667085] hover:text-[#202124] hover:bg-[#F2F4F7] rounded-md transition-colors cursor-pointer"
+        title="Закрити (Esc)"
+        type="button"
+      >
+        <svg [size]="18" lucideX></svg>
+      </button>
+    </div>
+
+    <div
+      class="print-dialog-settings flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 border-b border-[#D7DCE2] bg-white shrink-0"
+    >
+      <label class="inline-flex items-center gap-2 text-xs font-medium text-[#475467]">
+        <span>Ширина</span>
+        <input
+          (blur)="restoreLabelWidth($event)"
+          (input)="setLabelWidth($event)"
+          [value]="labelWidthMm()"
+          class="w-[68px] rounded border border-[#D7DCE2] px-2 py-1 text-xs text-[#202124] outline-none focus:border-[#667085]"
+          max="300"
+          min="1"
+          step="0.5"
+          type="number"
+        />
+        <span class="font-normal text-[#667085]">мм</span>
+      </label>
+
+      <label class="inline-flex items-center gap-2 text-xs font-medium text-[#475467]">
+        <span>Висота</span>
+        <input
+          (blur)="restoreLabelHeight($event)"
+          (input)="setLabelHeight($event)"
+          [value]="labelHeightMm()"
+          class="w-[68px] rounded border border-[#D7DCE2] px-2 py-1 text-xs text-[#202124] outline-none focus:border-[#667085]"
+          max="300"
+          min="1"
+          step="0.5"
+          type="number"
+        />
+        <span class="font-normal text-[#667085]">мм</span>
+      </label>
+
+      <button
+        (click)="resetLabelDimensions()"
+        class="text-xs font-medium text-[#667085] underline-offset-2 hover:text-[#202124] hover:underline cursor-pointer"
+        title="Скинути до 58 × 40 мм"
+        type="button"
+      >
+        Скинути
+      </button>
+    </div>
+
+    <!-- Preview Canvas -->
+    <div
+      class="print-preview-scroll flex-1 p-6 bg-[#EEF2F6] overflow-auto max-h-[60vh] min-h-[220px]"
+    >
+      @if (loading()) {
+        <div class="flex flex-col items-center justify-center h-48 gap-3 text-[#667085]">
+          <svg [size]="24" class="animate-spin text-[#202124]" lucideRotateCw></svg>
+          <span class="text-xs font-medium">Підготовка етикеток та генерація QR-кодів...</span>
+        </div>
+      } @else if (preparedLabels().length === 0) {
+        <div class="flex flex-col items-center justify-center h-48 text-[#667085]">
+          <span class="text-xs">Немає вибраних об'єктів для друку.</span>
+        </div>
+      } @else {
+        <div class="flex flex-col items-center gap-4">
+          @for (item of preparedLabels(); track item.assetId) {
+            <div
+              [style.height.mm]="labelHeightMm()"
+              [style.width.mm]="labelWidthMm()"
+              class="label-preview-card pt-0 px-[2.5mm] pb-[2.5mm] bg-white border border-[#D7DCE2] rounded shadow-xs flex flex-col justify-between select-none shrink-0 overflow-hidden"
+            >
+              <!-- Top row: Code only -->
+              <div class="border-b border-black/15 pb-0.5 shrink-0">
+                <span class="font-mono font-bold text-[11px] leading-none text-black tracking-tight">
+                  {{ item.code }}
+                </span>
+              </div>
+
+              <!-- Middle row: Name & optional MVO left, QR right -->
+              <div class="flex items-center justify-between gap-1.5 my-auto min-h-0 flex-1 py-1">
+                <div class="flex flex-col justify-center min-w-0 flex-1 pr-1">
+                  <div class="text-[9.5px] font-semibold text-black leading-[1.25] line-clamp-3 break-words">
+                    {{ item.name }}
+                  </div>
+                  @if (showMvo() && item.mvo) {
+                    <div class="text-[7.5px] text-zinc-700 leading-tight truncate mt-1">
+                      <span class="text-zinc-500">МВО:</span> {{ item.mvo }}
+                    </div>
+                  }
+                </div>
+
+                <div class="w-[23mm] h-[23mm] shrink-0 bg-white flex items-center justify-center">
+                  @if (item.qrDataUrl) {
+                    <img
+                      [src]="item.qrDataUrl"
+                      alt="QR"
+                      class="w-full h-full object-contain"
+                    />
+                  } @else {
+                    <div class="w-full h-full bg-zinc-100 flex items-center justify-center text-[7px] text-zinc-400">
+                      QR
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Bottom row: Canonical Payload -->
+              <div class="pt-0.5 border-t border-black/15 flex items-center justify-between shrink-0">
+                <span class="font-mono text-[6.5px] leading-tight text-zinc-800 tracking-tight truncate">
+                  {{ item.payload }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div
+      class="print-dialog-footer flex items-center justify-between px-6 py-3.5 bg-white border-t border-[#D7DCE2] shrink-0"
+    >
+      <div class="flex items-center gap-4 text-xs">
+        <span class="text-[#667085]">
+          До друку:
+          <span class="font-bold text-[#202124]">{{ preparedLabels().length }} шт.</span>
+        </span>
+
+        <span class="text-[#D7DCE2]">·</span>
+
+        <label
+          class="inline-flex items-center gap-1.5 cursor-pointer select-none text-[#475467] hover:text-[#202124] transition-colors"
+        >
+          <input
+            (change)="toggleMvo($event)"
+            [checked]="showMvo()"
+            class="w-3.5 h-3.5 rounded border-[#D7DCE2] text-[#202124] accent-[#202124] cursor-pointer"
+            type="checkbox"
+          />
+          <span>Показувати МВО</span>
+        </label>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button
+          (click)="requestDismiss()"
+          class="px-3.5 py-1.5 text-xs font-semibold text-[#475467] hover:text-[#202124] hover:bg-[#F2F4F7] rounded-md transition-colors cursor-pointer"
+          type="button"
+        >
+          Скасувати
+        </button>
+
+        <button
+          (click)="print()"
+          [disabled]="loading() || preparedLabels().length === 0"
+          class="inline-flex items-center gap-2 px-4 py-1.5 bg-[#202124] hover:bg-[#303134] text-white rounded-md text-xs font-semibold shadow-2xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          type="button"
+        >
+          <svg [size]="14" lucidePrinter></svg>
+          <span>Друкувати</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dedicated Print Sheet for window.print() -->
+<div class="hidden" id="thermal-print-output">
+  @for (item of preparedLabels(); track item.assetId) {
+    <div class="thermal-label-page">
+      <!-- Top row: Code only -->
+      <div class="border-b border-black/20 pb-0.5 shrink-0">
+        <span class="font-mono font-bold text-[11px] leading-none text-black tracking-tight">
+          {{ item.code }}
+        </span>
+      </div>
+
+      <!-- Middle row: Name & optional MVO left, QR right -->
+      <div class="flex items-center justify-between gap-1.5 my-auto min-h-0 flex-1 py-1">
+        <div class="flex flex-col justify-center min-w-0 flex-1 pr-1">
+          <div class="text-[9.5px] font-semibold text-black leading-[1.25] line-clamp-3 break-words">
+            {{ item.name }}
+          </div>
+          @if (showMvo() && item.mvo) {
+            <div class="text-[7.5px] text-black leading-tight truncate mt-1">
+              <span>МВО:</span> {{ item.mvo }}
+            </div>
+          }
+        </div>
+
+        <div class="w-[23mm] h-[23mm] shrink-0 bg-white flex items-center justify-center">
+          @if (item.qrDataUrl) {
+            <img
+              [src]="item.qrDataUrl"
+              alt="QR"
+              class="w-full h-full object-contain"
+            />
+          }
+        </div>
+      </div>
+
+      <!-- Bottom row: Canonical Payload -->
+      <div class="pt-0.5 border-t border-black/20 flex items-center justify-between shrink-0">
+        <span class="font-mono text-[6.5px] leading-tight text-black tracking-tight truncate">
+          {{ item.payload }}
+        </span>
+      </div>
+    </div>
+  }
+</div>

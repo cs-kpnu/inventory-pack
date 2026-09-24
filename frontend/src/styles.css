@@ -1,2 +1,92 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
+
+:root {
+  --thermal-label-width: 58mm;
+  --thermal-label-height: 40mm;
+}
+
+@media print {
+  @page {
+    margin: 0;
+  }
+
+  html,
+  body {
+    width: var(--thermal-label-width) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  /* Hide app chrome during print */
+  header,
+  app-ledger-toolbar > div,
+  app-ledger-table,
+  app-ledger-pagination,
+  .print-dialog-backdrop,
+  .print-dialog-header,
+  .print-dialog-settings,
+  .print-dialog-toolbar,
+  .print-dialog-footer,
+  .print-preview-scroll {
+    display: none !important;
+  }
+
+  /* Unconstrain wrapper ancestors */
+  app-root,
+  app-root > div,
+  main,
+  app-ledger-toolbar,
+  app-asset-print-dialog,
+  .print-dialog-modal {
+    display: block !important;
+    position: static !important;
+    width: var(--thermal-label-width) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Display dedicated thermal print output */
+  #thermal-print-output {
+    display: block !important;
+    width: var(--thermal-label-width) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .thermal-label-page {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    width: var(--thermal-label-width) !important;
+    height: var(--thermal-label-height) !important;
+    max-width: var(--thermal-label-width) !important;
+    max-height: var(--thermal-label-height) !important;
+    min-width: var(--thermal-label-width) !important;
+    min-height: var(--thermal-label-height) !important;
+    box-sizing: border-box !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0 !important;
+    padding: 0 3mm 2.5mm !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

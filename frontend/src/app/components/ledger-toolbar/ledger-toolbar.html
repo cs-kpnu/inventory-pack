@@ -20,6 +20,17 @@
       </button>
     }
 
+    @if (ledgerService.selectedAssetCount() > 0) {
+      <button
+        (click)="openPrintDialog()"
+        class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#F2F4F7] text-[#202124] border border-[#D7DCE2] rounded-md text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+        type="button"
+      >
+        <svg [size]="13" lucidePrinter></svg>
+        <span>Друк етикеток</span>
+      </button>
+    }
+
     @if (ledgerService.hasSelection()) {
       <div
         class="flex items-center gap-2 bg-[#E9EDF2] border border-[#D7DCE2] text-[#20262E] px-2.5 py-1 rounded-md text-xs font-medium"
@@ -82,5 +93,11 @@
     [entries]="selectionService.selectedEntries()"
     [selectedCodeIdsByEntry]="selectionService.selectedCodesByEntry()"
     [unlistedCodeCount]="unlistedSelectedCodeCount()"
+  />
+}
+
+@if (printDialogOpen()) {
+  <app-asset-print-dialog
+    (dismiss)="closePrintDialog()"
   />
 }

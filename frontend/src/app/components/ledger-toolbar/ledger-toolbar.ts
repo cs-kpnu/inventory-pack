@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucidePlus, LucideRotateCw } from '@lucide/angular';
+import { LucidePlus, LucidePrinter, LucideRotateCw } from '@lucide/angular';
 import { LedgerEntryService } from '../../services/ledger-entry.service';
 import { LedgerSelectionService } from '../../services/ledger-selection.service';
 import { LedgerExpansionService } from '../../services/ledger-expansion.service';
@@ -8,6 +8,7 @@ import { RegisterAssetsRequest, RegisteredAssetDto } from '../../models/ledger-e
 import { LedgerSearch } from '../ledger-search/ledger-search';
 import { StatusFilterBar } from '../status-filter/status-filter';
 import { AssetRegistrationDialog } from '../asset-registration-dialog/asset-registration-dialog';
+import { AssetPrintDialog } from '../asset-print-dialog/asset-print-dialog';
 
 @Component({
   selector: 'app-ledger-toolbar',
@@ -16,8 +17,10 @@ import { AssetRegistrationDialog } from '../asset-registration-dialog/asset-regi
     LedgerSearch,
     StatusFilterBar,
     AssetRegistrationDialog,
+    AssetPrintDialog,
     LucideRotateCw,
     LucidePlus,
+    LucidePrinter,
   ],
   templateUrl: './ledger-toolbar.html',
 })
@@ -28,6 +31,7 @@ export class LedgerToolbar {
 
   readonly registrationDialogOpen = signal(false);
   readonly registrationWasSuccessful = signal(false);
+  readonly printDialogOpen = signal(false);
 
   readonly unlistedSelectedCodeCount = computed(() => {
     const selection = this.selectionService.selectedCodesByEntry();
@@ -76,5 +80,13 @@ export class LedgerToolbar {
   closeRegistrationDialog(): void {
     this.registrationDialogOpen.set(false);
     this.registrationWasSuccessful.set(false);
+  }
+
+  openPrintDialog(): void {
+    this.printDialogOpen.set(true);
+  }
+
+  closePrintDialog(): void {
+    this.printDialogOpen.set(false);
   }
 }
