@@ -1,5 +1,6 @@
 @codeGroupId = 00000000-0000-0000-0000-000000000000
 @assetRequestId = 11111111-1111-1111-1111-111111111111
+@rejectedRowId = 00000000-0000-0000-0000-000000000000
 
 ### Health: Root check
 GET {{HostAddress}}/
@@ -183,3 +184,63 @@ Content-Type: application/json
     "requestId": "44444444-4444-4444-4444-444444444444",
     "count": 2
 }
+
+###
+
+# ===================================================================
+# Rejected Rows API
+# ===================================================================
+
+### Rejected rows: First page (default 25 rows) with reason counts
+GET {{HostAddress}}/api/rejected-rows
+Accept: application/json
+
+> {%
+    if (response.body.items && response.body.items.length > 0) {
+        client.global.set("rejectedRowId", response.body.items[0].id);
+    }
+%}
+
+### Rejected rows: Search by text (RawText, Mvo, Subaccount)
+GET {{HostAddress}}/api/rejected-rows?search=картрідж&page=1&pageSize=10
+Accept: application/json
+
+### Rejected rows: Search by Excel row number
+GET {{HostAddress}}/api/rejected-rows?search=13027&page=1&pageSize=10
+Accept: application/json
+
+### Rejected rows: Filter by reason (NoSingleCode)
+GET {{HostAddress}}/api/rejected-rows?reason=NoSingleCode&page=1&pageSize=10
+Accept: application/json
+
+### Rejected rows: Filter by reason (DuplicateCode)
+GET {{HostAddress}}/api/rejected-rows?reason=DuplicateCode&page=1&pageSize=10
+Accept: application/json
+
+### Rejected rows: Filter by reason (CodeQuantityMismatch)
+GET {{HostAddress}}/api/rejected-rows?reason=CodeQuantityMismatch&page=1&pageSize=10
+Accept: application/json
+
+### Rejected rows: Filter by reason (InvalidQuantity)
+GET {{HostAddress}}/api/rejected-rows?reason=InvalidQuantity&page=1&pageSize=10
+Accept: application/json
+
+### Rejected rows: Custom pagination
+GET {{HostAddress}}/api/rejected-rows?page=2&pageSize=10
+Accept: application/json
+
+### Rejected row: Detail by ID
+GET {{HostAddress}}/api/rejected-rows/{{rejectedRowId}}
+Accept: application/json
+
+### Rejected row: Detail (404 Not Found check)
+GET {{HostAddress}}/api/rejected-rows/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Rejected rows: Invalid pagination (400 Bad Request check)
+GET {{HostAddress}}/api/rejected-rows?page=0&pageSize=25
+Accept: application/json
+
+### Rejected rows: Invalid reason filter (400 Bad Request check)
+GET {{HostAddress}}/api/rejected-rows?reason=invalid_reason
+Accept: application/json
