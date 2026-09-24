@@ -6,6 +6,7 @@ using InventoryPack.Features.Assets.Import.Excel;
 using InventoryPack.Features.LedgerEntries;
 using InventoryPack.Features.LedgerEntries.Handlers;
 using InventoryPack.Features.RejectedRows;
+using InventoryPack.Features.RejectedRows.Handlers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +21,8 @@ builder.Services.AddScoped<ImportAssetsHandler>();
 builder.Services.AddScoped<RegisterAssetsHandler>();
 builder.Services.AddScoped<GetLedgerEntriesHandler>();
 builder.Services.AddScoped<GetLedgerEntryHandler>();
-builder.Services.AddScoped<RejectedRowQueryHandler>();
+builder.Services.AddScoped<GetRejectedRowsHandler>();
+builder.Services.AddScoped<GetRejectedRowHandler>();
 
 var app = builder.Build();
 

@@ -2,11 +2,11 @@ using InventoryPack.Data;
 using InventoryPack.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace InventoryPack.Features.RejectedRows;
+namespace InventoryPack.Features.RejectedRows.Handlers;
 
-public class RejectedRowQueryHandler(AppDbContext db)
+public class GetRejectedRowsHandler(AppDbContext db)
 {
-    public async Task<RejectedRowListResponse> GetPagedAsync(
+    public async Task<RejectedRowListResponse> HandleAsync(
         string? search,
         RejectionReason? reason = null,
         int page = 1,
@@ -63,42 +63,6 @@ public class RejectedRowQueryHandler(AppDbContext db)
         )).ToList();
 
         return new RejectedRowListResponse(items, page, pageSize, totalCount, totalReasonCounts);
-    }
-
-    public async Task<RejectedRowDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
-    {
-        var row = await db.RejectedRows.AsNoTracking()
-            .Where(r => r.Id == id)
-            .Select(r => new
-            {
-                r.Id,
-                r.RowNumber,
-                r.RawText,
-                r.Quantity,
-                r.Unit,
-                r.Mvo,
-                r.Subaccount
-            })
-            .FirstOrDefaultAsync(ct);
-
-        if (row is null)
-            return null;
-
-        var reasons = await db.RejectedRowReasons.AsNoTracking()
-            .Where(re => re.RejectedRowId == id)
-            .Select(re => re.Reason.ToString())
-            .OrderBy(s => s)
-            .ToListAsync(ct);
-
-        return new RejectedRowDto(
-            row.Id,
-            row.RowNumber,
-            row.RawText,
-            row.Quantity,
-            row.Unit,
-            row.Mvo,
-            row.Subaccount,
-            reasons);
     }
 
     private static IQueryable<RejectedRow> FilterBySearch(IQueryable<RejectedRow> query, string? search)

@@ -1,4 +1,5 @@
 using InventoryPack.Data.Entities;
+using InventoryPack.Features.RejectedRows.Handlers;
 
 namespace InventoryPack.Features.RejectedRows;
 
@@ -20,7 +21,7 @@ public static class RejectedRowsEndpoints
         string? reason,
         int? page,
         int? pageSize,
-        RejectedRowQueryHandler handler,
+        GetRejectedRowsHandler handler,
         CancellationToken ct)
     {
         var pageNumber = page ?? 1;
@@ -39,16 +40,16 @@ public static class RejectedRowsEndpoints
             filterReason = parsed;
         }
 
-        var response = await handler.GetPagedAsync(search, filterReason, pageNumber, effectivePageSize, ct);
+        var response = await handler.HandleAsync(search, filterReason, pageNumber, effectivePageSize, ct);
         return Results.Ok(response);
     }
 
     private static async Task<IResult> GetByIdAsync(
         Guid id,
-        RejectedRowQueryHandler handler,
+        GetRejectedRowHandler handler,
         CancellationToken ct)
     {
-        var row = await handler.GetByIdAsync(id, ct);
+        var row = await handler.HandleAsync(id, ct);
         return row is not null ? Results.Ok(row) : Results.NotFound();
     }
 }
