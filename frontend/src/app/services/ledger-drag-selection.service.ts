@@ -53,6 +53,7 @@ export class LedgerDragSelectionService {
           target.code.id,
           target.assetId,
           drag.checked,
+          target.entry,
         );
       }
     }

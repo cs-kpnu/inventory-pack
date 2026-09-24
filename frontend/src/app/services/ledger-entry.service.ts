@@ -53,6 +53,9 @@ export class LedgerEntryService {
   get hasSelection() {
     return this.selection.hasSelection;
   }
+  get selectedEntries() {
+    return this.selection.selectedEntries;
+  }
 
   loadEntries(): void {
     this.loading.set(true);

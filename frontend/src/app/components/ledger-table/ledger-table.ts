@@ -77,8 +77,14 @@ export class LedgerTable {
     return this.selection.areAnyVisibleRowsChecked(this.ledgerService.entries());
   }
 
-  setAssetChecked(entryId: string, codeId: string, assetId: string, checked: boolean): void {
-    this.selection.setAssetChecked(entryId, codeId, assetId, checked);
+  setAssetChecked(
+    entryId: string,
+    codeId: string,
+    assetId: string,
+    checked: boolean,
+    entry?: LedgerEntrySummaryDto,
+  ): void {
+    this.selection.setAssetChecked(entryId, codeId, assetId, checked, entry);
   }
 
   onAssetCheck(
@@ -92,7 +98,7 @@ export class LedgerTable {
       return;
     }
     const checked = (event.target as HTMLInputElement).checked;
-    this.setAssetChecked(item.id, code.id, assetId, checked);
+    this.setAssetChecked(item.id, code.id, assetId, checked, item);
   }
 
   onAssetCheckboxClick(event: MouseEvent): void {
@@ -110,7 +116,7 @@ export class LedgerTable {
       event.preventDefault();
       return;
     }
-    this.setAssetChecked(item.id, code.id, assetId, !this.isAssetChecked(assetId));
+    this.setAssetChecked(item.id, code.id, assetId, !this.isAssetChecked(assetId), item);
   }
 
   setCodeChecked(item: LedgerEntrySummaryDto, code: LedgerEntryCodeDto, checked: boolean): void {

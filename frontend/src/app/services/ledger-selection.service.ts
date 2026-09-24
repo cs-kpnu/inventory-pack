@@ -19,6 +19,13 @@ export class LedgerSelectionService {
   readonly hasSelection = computed(
     () => this.selectedCodeCount() > 0 || this.selectedAssetCount() > 0,
   );
+  private readonly selectedEntrySnapshots = signal<Map<string, LedgerEntrySummaryDto>>(new Map());
+  readonly selectedEntries = computed(() => {
+    const snapshots = this.selectedEntrySnapshots();
+    return Array.from(this.selectedCodesByEntry().keys())
+      .map((entryId) => snapshots.get(entryId))
+      .filter((entry): entry is LedgerEntrySummaryDto => entry !== undefined);
+  });
   private readonly expansion = inject(LedgerExpansionService);
 
   constructor() {
@@ -93,7 +100,13 @@ export class LedgerSelectionService {
     return entries.some((entry) => this.isRowChecked(entry) || this.isRowPartiallyChecked(entry));
   }
 
-  setAssetChecked(entryId: string, codeId: string, assetId: string, checked: boolean): void {
+  setAssetChecked(
+    entryId: string,
+    codeId: string,
+    assetId: string,
+    checked: boolean,
+    entry?: LedgerEntrySummaryDto,
+  ): void {
     this.selectedAssetIds.update((set) => {
       const next = new Set(set);
       if (checked) next.add(assetId);
@@ -107,11 +120,38 @@ export class LedgerSelectionService {
         a.id === assetId ? checked : this.isAssetChecked(a.id),
       );
       this.setCodeIdChecked(entryId, codeId, allChecked);
+      if (entry) {
+        this.selectedEntrySnapshots.update((snapshots) => {
+          const next = new Map(snapshots);
+          if (allChecked) {
+            next.set(entry.id, entry);
+          } else {
+            const remaining = this.selectedCodesByEntry().get(entryId);
+            if (!remaining || remaining.size === 0) {
+              next.delete(entryId);
+            }
+          }
+          return next;
+        });
+      }
     }
   }
 
   setCodeChecked(entry: LedgerEntrySummaryDto, code: LedgerEntryCodeDto, checked: boolean): void {
     this.setCodeIdChecked(entry.id, code.id, checked);
+
+    this.selectedEntrySnapshots.update((snapshots) => {
+      const next = new Map(snapshots);
+      if (checked) {
+        next.set(entry.id, entry);
+      } else {
+        const remaining = this.selectedCodesByEntry().get(entry.id);
+        if (!remaining || remaining.size === 0) {
+          next.delete(entry.id);
+        }
+      }
+      return next;
+    });
 
     if (code.groupRegisteredAssetCount > 0) {
       const assets = this.expansion.assetsFor(entry.id, code.id);
@@ -157,6 +197,7 @@ export class LedgerSelectionService {
   clearSelection(): void {
     this.selectedCodesByEntry.set(new Map());
     this.selectedAssetIds.set(new Set());
+    this.selectedEntrySnapshots.set(new Map());
   }
 
   setCodeIdChecked(entryId: string, codeId: string, checked: boolean): void {

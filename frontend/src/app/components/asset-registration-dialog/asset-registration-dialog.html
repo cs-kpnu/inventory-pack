@@ -1,0 +1,248 @@
+<div
+  (click)="requestDismiss()"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+>
+  <section
+    (click)="$event.stopPropagation()"
+    aria-labelledby="registration-dialog-title"
+    aria-modal="true"
+    class="flex max-h-[calc(100vh-3rem)] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-[#D7DCE2] bg-white shadow-2xl"
+    role="dialog"
+  >
+    <!-- Modal Header -->
+    <header class="flex items-center justify-between border-b border-[#D7DCE2] bg-[#F8F9FB] px-5 py-3 shrink-0">
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded bg-[#202124] text-white flex items-center justify-center font-bold text-xs">
+          <svg [size]="14" lucidePlus></svg>
+        </div>
+        <h2 class="text-sm font-semibold text-[#20262E]" id="registration-dialog-title">
+          Реєстрація об’єктів
+        </h2>
+      </div>
+      <button
+        (click)="requestDismiss()"
+        [disabled]="submitting()"
+        aria-label="Закрити"
+        class="rounded p-1 text-[#667085] hover:text-[#20262E] hover:bg-black/5 transition-colors cursor-pointer disabled:opacity-40"
+        type="button"
+      >
+        <svg [size]="18" lucideX></svg>
+      </button>
+    </header>
+
+    @if (unlistedCodeCount() > 0) {
+      <div
+        class="border-b border-amber-200 bg-amber-50 px-5 py-2 text-xs text-amber-900 flex items-center gap-2 shrink-0">
+        <svg [size]="14" class="text-amber-700 shrink-0" lucideAlertCircle></svg>
+        <span>
+          Не вдалося завантажити дані для {{ unlistedCodeCount() }} вибраних кодів. Будь ласка, оновіть сторінку або виберіть їх повторно.
+        </span>
+      </div>
+    }
+
+    <!-- Spreadsheet Table Area -->
+    <div class="min-h-0 flex-1 overflow-auto bg-white" style="scrollbar-gutter: stable">
+      @if (registeredAssetCount() !== null) {
+        <!-- Success State -->
+        <div class="py-16 px-6 flex flex-col items-center justify-center text-center">
+          <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
+            <svg [size]="24" lucideCheck></svg>
+          </div>
+          <h3 class="text-base font-semibold text-[#20262E] mb-1">
+            Об’єкти успішно зареєстровано!
+          </h3>
+          <p class="text-xs text-[#667085] max-w-md mb-6">
+            Створено <strong>{{ registeredAssetCount() }}</strong> нових фізичних об'єктів для
+            <strong>{{ visibleCodeCount() }}</strong> кодів. Тепер ви можете вибрати їх у таблиці для друку етикеток.
+          </p>
+          <button
+            (click)="requestDismiss()"
+            class="px-4 py-2 bg-[#202124] hover:bg-[#303134] text-white rounded-md text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            type="button"
+          >
+            Готово
+          </button>
+        </div>
+      } @else {
+        <table class="w-full table-fixed text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-[#E9EDF2] border-b border-[#C8D0D9] z-10">
+          <tr class="text-[11px] font-semibold text-[#344054] uppercase tracking-wider">
+            <th class="py-2.5 px-4">Найменування</th>
+            <th class="py-2.5 px-3 w-48">МВО</th>
+            <th class="py-2.5 px-3 w-24 text-right">К-сть</th>
+            <th class="py-2.5 px-2 w-16">Од.</th>
+            <th class="py-2.5 pl-3 pr-5 w-44 text-right">До реєстрації</th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-[#E1E5EA]">
+            @for (group of groups(); track group.entry.id) {
+              <!-- Ledger Entry Row (simplified: no row number, no subaccount) -->
+              <tr class="bg-[#F0F5FA] border-t border-[#D7DCE2] text-[#20262E]">
+                <td class="py-2 px-4 text-[#20262E]">
+                  <div [title]="group.entry.name" class="line-clamp-1 font-semibold text-[12px]">
+                    {{ group.entry.name }}
+                  </div>
+                </td>
+                <td class="py-2 px-3 text-[#475467]">
+                  @if (group.entry.mvo) {
+                    <span>{{ group.entry.mvo }}</span>
+                  } @else {
+                    <span class="text-[#7C8796] italic">Не вказано</span>
+                  }
+                </td>
+                <td class="py-2 px-3 text-right font-mono font-medium text-[#20262E]">
+                  {{ group.entry.quantity | number: '1.0-4' }}
+                </td>
+                <td class="py-2 px-2 text-[#667085]">
+                  {{ group.entry.unit || '—' }}
+                </td>
+                <td class="py-2 pl-3 pr-5 text-right font-medium text-[11px] text-[#667085]">
+                  {{ formatAssetCount(entryQuantityTotal(group)) }}
+                </td>
+              </tr>
+
+              <!-- Below the ledger row: the codes with editable box to the right -->
+              @for (code of group.codes; track code.id) {
+                <tr class="bg-white hover:bg-[#F9FAFC] border-b border-[#E1E5EA] transition-colors h-10">
+                  <td class="py-2 px-4 pl-8" colspan="4">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[#9AA0A6] font-mono text-xs">↳</span>
+                      <span class="font-mono text-xs text-[#20262E]">
+                        {{ code.code }}
+                      </span>
+                      @if (code.groupRegisteredAssetCount > 0) {
+                        <span class="text-[11px] text-[#667085] ml-1">
+                          (вже зареєстровано: <strong
+                          class="text-[#20262E]">{{ code.groupRegisteredAssetCount }}</strong>)
+                        </span>
+                      }
+                      @if (code.sourceRowCount > 1) {
+                        <span class="text-[11px] text-[#7C8796]">
+                          · У {{ code.sourceRowCount }} рядках
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td class="py-2 pl-3 pr-5 text-right">
+                    <div class="inline-flex items-center justify-end gap-1.5">
+                      <input
+                        (input)="updateQuantity(group.entry.id, code.id, $event)"
+                        [attr.aria-invalid]="!isQuantityValid(group.entry.id, code.id)"
+                        [class]="
+                          isQuantityValid(group.entry.id, code.id)
+                            ? 'border-[#C8D0D9] bg-white text-[#20262E] focus:border-zinc-800 focus:ring-1 focus:ring-zinc-800'
+                            : 'border-rose-400 bg-rose-50/60 text-rose-900 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+                        "
+                        [disabled]="submitting()"
+                        [value]="quantityFor(group.entry.id, code.id)"
+                        class="h-7 w-20 rounded border px-2 py-0.5 text-right font-mono text-xs outline-none transition-all shadow-2xs"
+                        max="50"
+                        min="1"
+                        placeholder="1–50"
+                        required
+                        step="1"
+                        type="number"
+                      />
+                      <span class="text-[11px] text-[#667085] w-6 text-left font-sans">шт.</span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            } @empty {
+              <tr>
+                <td class="py-12 text-center text-[#7C8796]" colspan="5">
+                  <div class="text-xs font-medium text-[#20262E]">Немає вибраних кодів для реєстрації</div>
+                  <div class="text-[11px] text-[#7C8796] mt-0.5">Виберіть коди в таблиці перед відкриттям вікна</div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+    <!-- Modal Footer -->
+    @if (registeredAssetCount() === null) {
+      <footer
+        class="flex flex-wrap items-center justify-between gap-3 border-t border-[#D7DCE2] bg-[#F8F9FB] px-5 py-3 shrink-0">
+        <div class="text-xs text-[#475467]">
+          <div class="flex items-center gap-2">
+            <span>Вибрано кодів: <strong class="font-bold text-[#20262E]">{{ visibleCodeCount() }}</strong></span>
+            <span class="text-[#D7DCE2]">·</span>
+            <span>Буде створено об’єктів: <strong class="font-bold text-[#20262E]">{{ totalQuantity() }}</strong></span>
+          </div>
+
+          @if (invalidQuantityCount() > 0) {
+            <div class="mt-1 text-xs font-medium text-rose-600 flex items-center gap-1">
+              <svg [size]="13" lucideAlertCircle></svg>
+              <span>Вкажіть коректну кількість (ціле число від 1 до 50) для кожного коду</span>
+            </div>
+          }
+
+          @if (errorMessage()) {
+            <div class="mt-1 text-xs font-medium text-rose-600" role="alert">
+              {{ errorMessage() }}
+            </div>
+            <div class="text-[11px] text-[#667085]">
+              Повторна спроба з тими самими кількостями безпечна та не створить дублікатів.
+            </div>
+          }
+        </div>
+
+        @if (confirming()) {
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-[#20262E] font-medium mr-1">
+              Підтвердити створення?
+            </span>
+            <button
+              (click)="cancelConfirmation()"
+              [disabled]="submitting()"
+              class="px-3.5 py-1.5 border border-[#D7DCE2] bg-white hover:bg-[#E9EDF2] text-[#344054] rounded-md text-xs font-semibold transition-colors cursor-pointer disabled:opacity-40"
+              type="button"
+            >
+              Назад
+            </button>
+            <button
+              (click)="register()"
+              [disabled]="submitting()"
+              class="px-4 py-1.5 bg-[#202124] hover:bg-[#303134] text-white rounded-md text-xs font-semibold shadow-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+              type="button"
+            >
+              @if (submitting()) {
+                <svg [size]="13" class="animate-spin" lucideRotateCw></svg>
+                <span>Реєстрація…</span>
+              } @else {
+                <svg [size]="13" lucideCheck></svg>
+                <span>Підтвердити</span>
+              }
+            </button>
+          </div>
+        } @else {
+          <div class="flex items-center gap-2">
+            <button
+              (click)="requestDismiss()"
+              [disabled]="submitting()"
+              class="px-3.5 py-1.5 border border-[#D7DCE2] bg-white hover:bg-[#E9EDF2] text-[#344054] rounded-md text-xs font-semibold transition-colors cursor-pointer disabled:opacity-40"
+              type="button"
+            >
+              Скасувати
+            </button>
+            <button
+              (click)="promptRegister()"
+              [class]="
+                canRegister()
+                  ? 'bg-[#202124] hover:bg-[#303134] text-white cursor-pointer shadow-xs'
+                  : 'bg-zinc-200 text-zinc-400 cursor-not-allowed border border-transparent'
+              "
+              [disabled]="!canRegister()"
+              class="px-4 py-1.5 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1.5"
+              type="button"
+            >
+              <span>Зареєструвати ({{ totalQuantity() }})</span>
+            </button>
+          </div>
+        }
+      </footer>
+    }
+  </section>
+</div>
