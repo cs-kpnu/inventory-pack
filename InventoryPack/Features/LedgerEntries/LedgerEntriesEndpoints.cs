@@ -1,3 +1,5 @@
+using InventoryPack.Features.LedgerEntries.Handlers;
+
 namespace InventoryPack.Features.LedgerEntries;
 
 public static class LedgerEntriesEndpoints
@@ -18,7 +20,7 @@ public static class LedgerEntriesEndpoints
         string? status,
         int? page,
         int? pageSize,
-        LedgerEntryQueryHandler handler,
+        GetLedgerEntriesHandler handler,
         CancellationToken ct)
     {
         var pageNumber = page ?? 1;
@@ -27,23 +29,26 @@ public static class LedgerEntriesEndpoints
         if (pageNumber < 1 || effectivePageSize is < 1 or > 100)
             return Results.BadRequest("Page must be >= 1 and pageSize must be between 1 and 100.");
 
-        var normalizedStatus = status?.Trim().ToLowerInvariant();
-        if (!string.IsNullOrEmpty(normalizedStatus) &&
-            normalizedStatus is not ("all" or "unregistered" or "partial" or "registered"))
-            return Results.BadRequest("Status must be one of: 'all', 'unregistered', 'partial', 'registered'.");
+        LedgerEntryStatus? filterStatus = null;
+        if (!string.IsNullOrWhiteSpace(status) &&
+            !string.Equals(status.Trim(), "all", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!Enum.TryParse<LedgerEntryStatus>(status.Trim(), true, out var parsed))
+                return Results.BadRequest(
+                    $"Status must be 'all' or one of: {string.Join(", ", Enum.GetNames<LedgerEntryStatus>().Select(s => s.ToLowerInvariant()))}.");
+            filterStatus = parsed;
+        }
 
-        var filterStatus = normalizedStatus is "registered" or "unregistered" or "partial" ? normalizedStatus : null;
-
-        var response = await handler.GetPagedAsync(search, filterStatus, pageNumber, effectivePageSize, ct);
+        var response = await handler.HandleAsync(search, filterStatus, pageNumber, effectivePageSize, ct);
         return Results.Ok(response);
     }
 
     private static async Task<IResult> GetByIdAsync(
         Guid id,
-        LedgerEntryQueryHandler handler,
+        GetLedgerEntryHandler handler,
         CancellationToken ct)
     {
-        var detail = await handler.GetByIdAsync(id, ct);
+        var detail = await handler.HandleAsync(id, ct);
         return detail is not null ? Results.Ok(detail) : Results.NotFound();
     }
 }

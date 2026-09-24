@@ -4,6 +4,7 @@ using InventoryPack.Features.Assets;
 using InventoryPack.Features.Assets.Import;
 using InventoryPack.Features.Assets.Import.Excel;
 using InventoryPack.Features.LedgerEntries;
+using InventoryPack.Features.LedgerEntries.Handlers;
 using InventoryPack.Features.RejectedRows;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddKeyedSingleton<IAssetImporter, ExcelAssetImporter>(".xlsx");
 builder.Services.AddScoped<ImportAssetsHandler>();
 builder.Services.AddScoped<RegisterAssetsHandler>();
-builder.Services.AddScoped<LedgerEntryQueryHandler>();
+builder.Services.AddScoped<GetLedgerEntriesHandler>();
+builder.Services.AddScoped<GetLedgerEntryHandler>();
 builder.Services.AddScoped<RejectedRowQueryHandler>();
 
 var app = builder.Build();
