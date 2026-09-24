@@ -40,6 +40,13 @@ export class LedgerTable {
     return this.ledgerService.selectedId() === id;
   }
 
+  remainingCodesTooltip(item: LedgerEntrySummaryDto): string {
+    return item.codes
+      .slice(1)
+      .map((code) => code.code)
+      .join(', ');
+  }
+
   onRowCheck(item: LedgerEntrySummaryDto, event: Event): void {
     if (this.suppressSelectionClick) {
       (event.target as HTMLInputElement).checked = this.ledgerService.isRowChecked(item);

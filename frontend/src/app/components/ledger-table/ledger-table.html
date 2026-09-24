@@ -18,7 +18,7 @@
             [checked]="areAllVisibleRowsChecked()"
             [disabled]="ledgerService.entries().length === 0"
             [indeterminate]="areAnyVisibleRowsChecked() && !areAllVisibleRowsChecked()"
-            class="h-3.5 w-3.5 cursor-pointer accent-zinc-900 disabled:cursor-default"
+            class="h-3.5 w-3.5 cursor-pointer accent-zinc-900"
             type="checkbox"
           />
         </label>
@@ -145,15 +145,15 @@
 
           <!-- Codes -->
           <td class="py-2 pl-3 pr-4">
-            <div class="flex flex-wrap items-center gap-1">
-              @for (code of item.codes.slice(0, 2); track code.id) {
+            <div class="flex items-center gap-1">
+              @for (code of item.codes.slice(0, 1); track code.id) {
                 <span
                   [class]="
                     code.groupRegisteredAssetCount > 0
                       ? 'bg-zinc-200 text-zinc-950 font-medium'
                       : 'bg-zinc-100 text-zinc-600'
                   "
-                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono"
+                  class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono shrink-0"
                 >
                   <span>{{ code.code }}</span>
                   @if (code.groupRegisteredAssetCount > 0) {
@@ -164,12 +164,12 @@
                   }
                 </span>
               }
-              @if (item.codes.length > 2) {
+              @if (item.codes.length > 1) {
                 <span
-                  class="px-1 text-[10px] text-zinc-400 font-mono"
-                  title="Ще {{ item.codes.length - 2 }} кодів"
+                  [title]="remainingCodesTooltip(item)"
+                  class="px-1 text-[10px] text-zinc-400 font-mono shrink-0 cursor-default"
                 >
-                  +{{ item.codes.length - 2 }}
+                  +{{ item.codes.length - 1 }}
                 </span>
               }
             </div>
@@ -224,7 +224,7 @@
                       <span class="font-mono font-semibold">{{ code.code }}</span>
                     </button>
                   } @else {
-                    <span class="ml-[21px] font-mono font-semibold text-zinc-900">{{
+                    <span class="ml-5.25 font-mono font-semibold text-zinc-900">{{
                         code.code
                       }}</span>
                   }
