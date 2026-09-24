@@ -1,6 +1,6 @@
 <div
   aria-label="Фільтр за статусом"
-  class="flex items-center gap-1 text-xs font-medium"
+  class="inline-flex items-center p-0.5 bg-[#E9EDF2] border border-[#D7DCE2] rounded-lg text-xs font-medium gap-0.5"
   role="group"
 >
   @for (option of options; track option.value) {
@@ -8,10 +8,10 @@
       (click)="onSelect(option.value)"
       [class]="
         isActive(option.value)
-          ? 'bg-zinc-900 text-white'
-          : 'text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100'
+          ? 'bg-white text-[#20262E] shadow-xs font-semibold'
+          : 'text-[#475467] hover:text-[#20262E] hover:bg-[#D7DCE2]/60'
       "
-      class="px-3 py-1.5 rounded-md transition-colors cursor-pointer whitespace-nowrap"
+      class="px-2.5 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap"
       type="button"
     >
       {{ option.label }}

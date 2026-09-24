@@ -4,8 +4,8 @@
   tabindex="0"
 >
   <table class="w-full table-fixed text-left border-collapse text-xs">
-    <thead class="sticky top-0 bg-zinc-50 border-b border-zinc-200 z-10">
-    <tr class="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider">
+    <thead class="sticky top-0 bg-[#E9EDF2] border-b border-[#C8D0D9] z-10">
+    <tr class="text-[11px] font-semibold text-[#344054] uppercase tracking-wider">
       <th class="relative w-9 p-0">
         <label class="absolute inset-0 flex cursor-pointer select-none items-center justify-center pl-1">
           <input
@@ -18,12 +18,12 @@
             [checked]="areAllVisibleRowsChecked()"
             [disabled]="ledgerService.entries().length === 0"
             [indeterminate]="areAnyVisibleRowsChecked() && !areAllVisibleRowsChecked()"
-            class="h-3.5 w-3.5 cursor-pointer accent-zinc-900"
+            class="h-3.5 w-3.5 cursor-pointer accent-[#202124] disabled:cursor-default"
             type="checkbox"
           />
         </label>
       </th>
-      <th class="py-2.5 pl-4 pr-2 w-20">
+      <th class="py-2.5 pl-3 pr-2 w-20">
         <div class="flex items-center justify-between">
           <button
             (click)="toggleVisibleRows()"
@@ -36,7 +36,7 @@
               (areAllVisibleRowsExpanded() ? 'Згорнути' : 'Розгорнути') +
               ' всі рядки на сторінці'
             "
-            class="rounded p-0.5 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-700 disabled:opacity-40"
+            class="rounded p-0.5 text-[#667085] hover:text-[#20262E] hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-700 disabled:opacity-40"
             type="button"
           >
             <svg
@@ -45,7 +45,7 @@
               lucideChevronRight
             ></svg>
           </button>
-          <span>#</span>
+          <span class="text-[#667085] font-normal">#</span>
         </div>
       </th>
       <th class="py-2.5 px-3 w-24">Рахунок</th>
@@ -57,7 +57,7 @@
     </tr>
     </thead>
 
-    <tbody class="divide-y divide-zinc-100">
+    <tbody class="divide-y divide-[#E1E5EA] bg-white">
       @for (item of ledgerService.entries(); track item.id) {
         <tr
           (click)="onLedgerRowClick(item, $event)"
@@ -66,12 +66,12 @@
           [attr.data-focused]="isFocused(item.id)"
           [class]="
             isRowExpanded(item.id)
-              ? 'bg-zinc-200/80 text-zinc-950'
+              ? 'bg-[#F0F5FA] border-l-[3px] border-l-[#8091A5] text-[#20262E]'
               : isFocused(item.id)
-                ? 'bg-zinc-100 text-zinc-950'
-                : 'hover:bg-zinc-50/80 text-zinc-800'
+                ? 'bg-[#F5F7FA] border-l-[3px] border-l-transparent text-[#20262E]'
+                : 'bg-white hover:bg-[#F5F7FA] border-l-[3px] border-l-transparent text-[#344054]'
           "
-          class="cursor-pointer transition-colors"
+          class="cursor-pointer transition-colors h-10"
         >
           <td (click)="$event.stopPropagation()" class="relative w-9 p-0">
             <label
@@ -81,15 +81,16 @@
               <input
                 (change)="onRowCheck(item, $event)"
                 [attr.aria-label]="'Вибрати рядок ' + item.sourceRowNumber + ' і всі його коди'"
-                [checked]="ledgerService.isRowChecked(item)"
-                [indeterminate]="ledgerService.isRowPartiallyChecked(item)"
-                class="h-3.5 w-3.5 cursor-pointer accent-zinc-900"
+                [checked]="isRowChecked(item)"
+                [indeterminate]="isRowPartiallyChecked(item)"
+                class="h-3.5 w-3.5 cursor-pointer accent-[#202124]"
                 type="checkbox"
               />
             </label>
           </td>
-          <!-- Row number -->
-          <td class="py-2 pl-4 pr-2 font-mono text-zinc-400 text-[11px]">
+
+          <!-- Row number & Chevron -->
+          <td class="py-2 pl-3 pr-2 font-mono text-[#7C8796] text-[11px]">
             <div class="flex items-center justify-between gap-1">
               <button
                 (click)="toggleRow(item); $event.stopPropagation()"
@@ -99,7 +100,7 @@
                   ' коди рядка ' +
                   item.sourceRowNumber
                 "
-                class="rounded p-0.5 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-700"
+                class="rounded p-0.5 text-[#667085] hover:text-[#20262E] hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-700"
                 type="button"
               >
                 <svg
@@ -113,33 +114,33 @@
           </td>
 
           <!-- Subaccount -->
-          <td class="py-2 px-3 font-mono text-zinc-600">
+          <td class="py-2 px-3 font-mono text-[#475467]">
             {{ item.subaccount }}
           </td>
 
-          <!-- Name -->
-          <td class="py-2 px-3 text-zinc-950">
-            <div [title]="item.name" class="line-clamp-1">
+          <!-- Name: Strongest element in the row -->
+          <td class="py-2 px-3 text-[#20262E]">
+            <div [title]="item.name" class="line-clamp-1 font-semibold text-[12px]">
               {{ item.name }}
             </div>
           </td>
 
           <!-- MVO -->
-          <td class="py-2 px-3">
+          <td class="py-2 px-3 text-[#475467]">
             @if (item.mvo) {
-              <span class="text-zinc-800">{{ item.mvo }}</span>
+              <span>{{ item.mvo }}</span>
             } @else {
-              <span class="text-zinc-400 italic">Не вказано</span>
+              <span class="text-[#7C8796] italic">Не вказано</span>
             }
           </td>
 
           <!-- Quantity -->
-          <td class="py-2 px-3 text-right font-mono text-zinc-950">
+          <td class="py-2 px-3 text-right font-mono text-[#475467]">
             {{ item.quantity | number: '1.0-4' }}
           </td>
 
           <!-- Unit -->
-          <td class="py-2 px-2 text-zinc-500">
+          <td class="py-2 px-2 text-[#667085]">
             {{ item.unit || '—' }}
           </td>
 
@@ -150,8 +151,8 @@
                 <span
                   [class]="
                     code.groupRegisteredAssetCount > 0
-                      ? 'bg-zinc-200 text-zinc-950 font-medium'
-                      : 'bg-zinc-100 text-zinc-600'
+                      ? 'bg-[#E9EDF2] text-[#20262E] font-medium'
+                      : 'bg-[#F2F4F7] text-[#475467]'
                   "
                   class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono shrink-0"
                 >
@@ -167,7 +168,7 @@
               @if (item.codes.length > 1) {
                 <span
                   [title]="remainingCodesTooltip(item)"
-                  class="px-1 text-[10px] text-zinc-400 font-mono shrink-0 cursor-default"
+                  class="px-1 text-[10px] text-[#7C8796] font-mono shrink-0 cursor-default"
                 >
                   +{{ item.codes.length - 1 }}
                 </span>
@@ -175,131 +176,153 @@
             </div>
           </td>
         </tr>
+        <!-- Nested Content Panel (Clean Indented Hierarchy) -->
         @if (isRowExpanded(item.id)) {
-          @for (code of item.codes; track code.id; let odd = $odd) {
-            <tr
-              (click)="onCodeRowClick(item.id, code.id, $event)"
-              (pointerdown)="onCodePointerDown(item.id, code.id, $event)"
-              (pointerenter)="onCodePointerEnter(item.id, code.id, $event)"
-              [class]="odd ? 'bg-zinc-100' : 'bg-white'"
-              class="cursor-pointer border-b border-zinc-200 text-zinc-900"
-            >
-              <td></td>
-              <td class="relative p-0">
-                <label
-                  (click)="onCodeCheckboxClick($event)"
-                  class="absolute inset-x-0 -top-px -bottom-px flex cursor-pointer select-none items-center justify-center"
-                >
-                  <input
-                    (change)="onCodeCheck(item.id, code.id, $event)"
-                    [attr.aria-label]="
-                      'Вибрати код ' + code.code + ' у рядку ' + item.sourceRowNumber
-                    "
-                    [checked]="ledgerService.isCodeChecked(item.id, code.id)"
-                    class="h-3.5 w-3.5 cursor-pointer accent-zinc-900"
-                    type="checkbox"
-                  />
-                </label>
-              </td>
-              <td class="py-2 pl-2 pr-2" colspan="2">
-                <div class="flex items-center gap-2">
-                  @if (code.groupRegisteredAssetCount > 0) {
-                    <button
-                      (click)="toggleCode(item.id, code.id); $event.stopPropagation()"
-                      [attr.aria-expanded]="isCodeExpanded(item.id, code.id)"
-                      [attr.aria-label]="
-                        (isCodeExpanded(item.id, code.id) ? 'Згорнути' : 'Показати') +
-                        ' об’єкти коду ' +
-                        code.code
+          <tr class="bg-[#F7F9FC] border-b border-[#D7DCE2]">
+            <td class="p-0" colspan="8">
+              <div class="py-1.5 px-3 space-y-1">
+                @for (code of item.codes; track code.id) {
+                  <div class="space-y-0.5">
+                    <!-- Code Group Header Line -->
+                    <div
+                      (click)="onCodeRowClick(item.id, code, $event)"
+                      (pointerdown)="onCodePointerDown(item, code, $event)"
+                      (pointerenter)="onCodePointerEnter(item, code, $event)"
+                      [class]="
+                        isCodeChecked(item.id, code) || isCodeIndeterminate(item.id, code)
+                          ? 'bg-[#E9EDF2]/70 text-[#20262E]'
+                          : 'hover:bg-black/[0.03] text-[#475467]'
                       "
-                      class="flex items-center gap-2 rounded py-0.5 pr-2 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-zinc-700"
-                      type="button"
+                      class="flex items-center justify-between py-1.5 pr-2.5 pl-3 rounded transition-colors cursor-pointer min-h-[28px]"
                     >
-                      <svg
-                        [class.rotate-90]="isCodeExpanded(item.id, code.id)"
-                        [size]="13"
-                        class="shrink-0 text-zinc-500"
-                        lucideChevronRight
-                      ></svg>
-                      <span class="font-mono font-semibold">{{ code.code }}</span>
-                    </button>
-                  } @else {
-                    <span class="ml-5.25 font-mono font-semibold text-zinc-900">{{
-                        code.code
-                      }}</span>
-                  }
-                  @if (code.sourceRowCount > 1) {
-                    <span class="text-[11px] text-zinc-500"
-                    >У {{ code.sourceRowCount }} рядках</span
-                    >
-                  }
-                </div>
-              </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td class="pl-3 pr-4 text-xs text-zinc-800">
-                @if (code.groupRegisteredAssetCount === 0) {
-                  Об'єктів немає
-                } @else {
-                  У групі: {{ code.groupRegisteredAssetCount }}
-                }
-              </td>
-            </tr>
-            @if (isCodeExpanded(item.id, code.id)) {
-              <tr class="bg-zinc-50 text-xs text-zinc-800">
-                <td></td>
-                <td></td>
-                <td class="py-1.5 pl-5 pr-4" colspan="6">
-                  @if (detailStates().get(item.id); as state) {
-                    @if (state.loading) {
-                      <span class="text-zinc-500">Завантаження об'єктів…</span>
-                    } @else if (state.error) {
-                      <span class="text-red-700">{{ state.error }}</span>
-                      <button
-                        (click)="loadDetail(item.id)"
-                        class="ml-2 underline"
-                        type="button"
-                      >
-                        Повторити
-                      </button>
-                    } @else {
-                      <div class="divide-y divide-zinc-200">
-                        @for (asset of assetsFor(item.id, code.id); track asset.id) {
-                          <div class="flex flex-wrap items-center gap-x-6 gap-y-1 py-1.5">
-                            <span [title]="asset.payload" class="font-mono text-zinc-900">{{
-                                asset.payload
-                              }}</span>
-                            <span>МВО: {{ asset.registeredForMvo || 'Не вказано' }}</span>
-                            <span class="text-zinc-500"
-                            >Зареєстровано:
-                              {{ asset.allocatedAt | date: 'dd.MM.yyyy HH:mm' }}</span
-                            >
+                      <div class="flex items-center self-stretch -my-1.5">
+                        <!-- Code Checkbox -->
+                        <label
+                          (click)="onCodeCheckboxClick($event)"
+                          class="flex cursor-pointer select-none items-center justify-center w-9 self-stretch shrink-0"
+                          data-code-checkbox
+                        >
+                          <input
+                            (change)="onCodeCheck(item, code, $event)"
+                            [attr.aria-label]="
+                              'Вибрати код ' + code.code + ' у рядку ' + item.sourceRowNumber
+                            "
+                            [checked]="isCodeChecked(item.id, code)"
+                            [indeterminate]="isCodeIndeterminate(item.id, code)"
+                            class="h-3.5 w-3.5 cursor-pointer accent-[#202124]"
+                            type="checkbox"
+                          />
+                        </label>
+
+                        <!-- Code Toggle & Identifier -->
+                        @if (code.groupRegisteredAssetCount > 0) {
+                          <button
+                            (click)="toggleCode(item.id, code.id); $event.stopPropagation()"
+                            [attr.aria-expanded]="isCodeExpanded(item.id, code.id)"
+                            [attr.aria-label]="
+                              (isCodeExpanded(item.id, code.id) ? 'Згорнути' : 'Показати') +
+                              ' об’єкти коду ' +
+                              code.code
+                            "
+                            class="flex items-center gap-1 py-0.5 px-1 text-[#475467] cursor-pointer"
+                            type="button"
+                          >
+                            <svg
+                              [class.rotate-90]="isCodeExpanded(item.id, code.id)"
+                              [size]="13"
+                              class="shrink-0 text-[#667085]"
+                              lucideChevronRight
+                            ></svg>
+                            <span class="font-mono text-[12px] font-medium text-[#475467]">{{ code.code }}</span>
+                          </button>
+                        } @else {
+                          <div class="flex items-center gap-1 pl-5">
+                            <span class="font-mono text-[12px] font-medium text-[#475467]">{{ code.code }}</span>
                           </div>
-                        } @empty {
-                          <span class="text-zinc-500">Об'єктів немає</span>
+                        }
+
+                        @if (code.sourceRowCount > 1) {
+                          <span class="text-[11px] text-[#7C8796] ml-2">
+                            · У {{ code.sourceRowCount }} рядках
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Registered Assets Subordinate List -->
+                    @if (code.groupRegisteredAssetCount > 0 && isCodeExpanded(item.id, code.id)) {
+                      <div class="space-y-0.5 pl-12">
+                        @if (detailStates().get(item.id); as state) {
+                          @if (state.loading) {
+                            <div class="py-1 px-2.5 text-xs text-[#7C8796]">Завантаження об'єктів…</div>
+                          } @else if (state.error) {
+                            <div class="py-1 px-2.5 text-xs text-red-600">
+                              <span>{{ state.error }}</span>
+                              <button
+                                (click)="loadDetail(item.id)"
+                                class="ml-2 text-xs underline text-red-700"
+                                type="button"
+                              >
+                                Повторити
+                              </button>
+                            </div>
+                          } @else {
+                            @for (asset of assetsFor(item.id, code.id); track asset.id) {
+                              <div
+                                (click)="onAssetRowClick(item, code, asset.id, $event)"
+                                (pointerdown)="onAssetPointerDown(item, code, asset.id, $event)"
+                                (pointerenter)="onAssetPointerEnter(item, code, asset.id, $event)"
+                                [class]="
+                                  isAssetChecked(asset.id)
+                                    ? 'bg-[#E9EDF2]/70 text-[#20262E]'
+                                    : 'hover:bg-black/[0.03] text-[#475467]'
+                                "
+                                class="flex items-center py-1.5 px-2.5 rounded transition-colors cursor-pointer text-xs min-h-[28px]"
+                              >
+                                <label
+                                  (click)="onAssetCheckboxClick($event)"
+                                  class="flex cursor-pointer select-none items-center justify-center w-9 self-stretch -my-1.5 -ml-2.5 shrink-0"
+                                  data-asset-checkbox
+                                >
+                                  <input
+                                    (change)="onAssetCheck(item, code, asset.id, $event)"
+                                    [attr.aria-label]="'Вибрати об’єкт ' + asset.payload"
+                                    [checked]="isAssetChecked(asset.id)"
+                                    class="h-3.5 w-3.5 cursor-pointer accent-[#202124]"
+                                    type="checkbox"
+                                  />
+                                </label>
+                                <span
+                                  [title]="(asset.registeredForMvo ? 'МВО: ' + asset.registeredForMvo : 'МВО: Не вказано') + (asset.allocatedAt ? ' | ' + (asset.allocatedAt | date: 'dd.MM.yyyy HH:mm') : '')"
+                                  class="font-mono text-[11px]"
+                                >
+                                  {{ asset.payload }}
+                                </span>
+                              </div>
+                            } @empty {
+                              <div class="py-1 px-2.5 text-xs text-[#7C8796] italic">Об'єктів немає</div>
+                            }
+                          }
                         }
                       </div>
                     }
-                  }
-                </td>
-              </tr>
-            }
-          } @empty {
-            <tr class="bg-zinc-50">
-              <td class="py-3 pl-12 text-xs text-zinc-500" colspan="8">Кодів не знайдено</td>
-            </tr>
-          }
+                  </div>
+                } @empty {
+                  <div class="text-xs text-[#7C8796] italic py-0.5 pl-6">Кодів не знайдено</div>
+                }
+              </div>
+            </td>
+          </tr>
         }
       } @empty {
         @if (!ledgerService.loading()) {
           <tr>
-            <td class="py-16 text-center text-zinc-400" colspan="8">
-              <div class="inline-flex p-3 rounded-full bg-zinc-100 text-zinc-400 mb-2">
+            <td class="py-16 text-center text-[#7C8796]" colspan="8">
+              <div class="inline-flex p-3 rounded-full bg-[#E9EDF2] text-[#667085] mb-2">
                 <svg [size]="20" lucideInbox></svg>
               </div>
-              <div class="text-xs font-medium text-zinc-600">Записів не знайдено</div>
-              <div class="text-[11px] text-zinc-400 mt-0.5">
+              <div class="text-xs font-medium text-[#20262E]">Записів не знайдено</div>
+              <div class="text-[11px] text-[#7C8796] mt-0.5">
                 Спробуйте змінити фільтр або пошуковий запит
               </div>
             </td>

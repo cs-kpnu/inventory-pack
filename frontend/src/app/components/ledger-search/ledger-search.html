@@ -1,6 +1,6 @@
 <div class="relative flex items-center w-full">
   <div
-    class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-zinc-500"
+    class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[#7C8796]"
   >
     <svg [size]="15" lucideSearch></svg>
   </div>
@@ -8,7 +8,7 @@
   <input
     (keydown.escape)="clear()"
     [formControl]="searchControl"
-    class="w-full pl-8 pr-7 py-1.5 bg-zinc-100 hover:bg-zinc-200/60 focus:bg-white text-xs font-normal text-zinc-950 placeholder-zinc-500 rounded-md focus:outline-none focus:ring-2 focus:ring-zinc-900 transition-all"
+    class="w-full pl-8 pr-7 py-1.5 bg-white border border-[#D7DCE2] hover:border-[#C8D0D9] focus:border-[#8091A5] focus:ring-1 focus:ring-[#8091A5] text-xs font-normal text-[#20262E] placeholder-[#7C8796] rounded-md shadow-2xs focus:outline-none transition-all"
     placeholder="Пошук (назва, код, МВО, субрахунок)..."
     type="text"
   />
@@ -16,7 +16,7 @@
   @if (hasValue()) {
     <button
       (click)="clear()"
-      class="absolute inset-y-0 right-0 pr-2 flex items-center text-zinc-500 hover:text-zinc-950 transition-colors cursor-pointer"
+      class="absolute inset-y-0 right-0 pr-2 flex items-center text-[#7C8796] hover:text-[#20262E] transition-colors cursor-pointer"
       title="Очистити"
       type="button"
     >

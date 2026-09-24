@@ -1,23 +1,23 @@
 <div
-  class="flex flex-wrap items-center justify-between gap-3 px-4 py-2 bg-white border-t border-zinc-200 text-xs text-zinc-600 shrink-0"
+  class="flex flex-wrap items-center justify-between gap-3 px-4 py-2 bg-[#F8F9FB] border-t border-[#D7DCE2] text-xs text-[#475467] shrink-0"
 >
   <!-- Range indicator -->
   <div>
     Показано
-    <strong class="font-bold text-zinc-950">{{ ledgerService.rangeStart() }}–{{ ledgerService.rangeEnd() }}</strong>
+    <strong class="font-bold text-[#20262E]">{{ ledgerService.rangeStart() }}–{{ ledgerService.rangeEnd() }}</strong>
     з
-    <strong class="font-bold text-zinc-950">{{ ledgerService.totalCount() | number }}</strong>
+    <strong class="font-bold text-[#20262E]">{{ ledgerService.totalCount() | number }}</strong>
   </div>
 
   <!-- Controls group -->
   <div class="flex items-center gap-6">
     <!-- Page size selector -->
     <div class="flex items-center gap-1.5">
-      <span class="text-zinc-500">На сторінці:</span>
+      <span class="text-[#667085]">На сторінці:</span>
       <select
         (change)="onPageSizeChange($event)"
         [value]="ledgerService.pageSize()"
-        class="bg-zinc-100 text-zinc-950 font-medium rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-zinc-900 cursor-pointer text-xs">
+        class="bg-white border border-[#D7DCE2] text-[#20262E] font-medium rounded px-2 py-1 shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#8091A5] cursor-pointer text-xs">
         @for (size of pageSizes; track size) {
           <option [value]="size">{{ size }}</option>
         }
@@ -29,7 +29,7 @@
       <button
         (click)="goToPage(1)"
         [disabled]="ledgerService.page() <= 1"
-        class="p-1 rounded text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        class="p-1 rounded text-[#475467] hover:text-[#20262E] hover:bg-[#E9EDF2] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         title="Перша сторінка"
         type="button"
       >
@@ -39,23 +39,23 @@
       <button
         (click)="goToPage(ledgerService.page() - 1)"
         [disabled]="ledgerService.page() <= 1"
-        class="p-1 rounded text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        class="p-1 rounded text-[#475467] hover:text-[#20262E] hover:bg-[#E9EDF2] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         title="Попередня сторінка"
         type="button"
       >
         <svg [size]="15" lucideChevronLeft></svg>
       </button>
 
-      <span class="px-2 font-medium text-zinc-950">
+      <span class="px-2 font-medium text-[#20262E]">
         {{ ledgerService.page() }}
-        <span class="text-zinc-400 font-normal">/</span>
+        <span class="text-[#7C8796] font-normal">/</span>
         {{ ledgerService.totalPages() }}
       </span>
 
       <button
         (click)="goToPage(ledgerService.page() + 1)"
         [disabled]="ledgerService.page() >= ledgerService.totalPages()"
-        class="p-1 rounded text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        class="p-1 rounded text-[#475467] hover:text-[#20262E] hover:bg-[#E9EDF2] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         title="Наступна сторінка"
         type="button"
       >
@@ -65,7 +65,7 @@
       <button
         (click)="goToPage(ledgerService.totalPages())"
         [disabled]="ledgerService.page() >= ledgerService.totalPages()"
-        class="p-1 rounded text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+        class="p-1 rounded text-[#475467] hover:text-[#20262E] hover:bg-[#E9EDF2] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         title="Остання сторінка"
         type="button"
       >

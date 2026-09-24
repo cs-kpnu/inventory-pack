@@ -1,5 +1,5 @@
 <div
-  class="flex flex-wrap items-center justify-between gap-4 px-4 py-2 bg-white border-b border-zinc-200"
+  class="flex flex-wrap items-center justify-between gap-4 px-4 py-2 bg-[#F8F9FB] border-b border-[#D7DCE2] shrink-0 text-[#344054]"
 >
   <div class="flex flex-wrap items-center gap-4 flex-1 min-w-[300px]">
     <div class="w-80">
@@ -8,29 +8,41 @@
     <app-status-filter/>
   </div>
 
-  <div class="flex items-center gap-3 text-xs text-zinc-600">
-    @if (ledgerService.selectedCodeCount() > 0) {
-      <span class="text-zinc-600">
-        Вибрано кодів:
-        <span class="font-semibold text-zinc-950">{{ ledgerService.selectedCodeCount() }}</span>
-      </span>
-      <button
-        (click)="ledgerService.clearSelection()"
-        class="cursor-pointer rounded border border-zinc-300 bg-white px-2 py-1 font-medium text-zinc-700 hover:bg-zinc-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-700"
-        type="button"
-      >
-        Скинути
-      </button>
+  <div class="flex items-center gap-3 text-xs text-[#475467]">
+    @if (ledgerService.selectedCodeCount() > 0 || ledgerService.selectedAssetCount() > 0) {
+      <div
+        class="flex items-center gap-2 bg-[#E9EDF2] border border-[#D7DCE2] text-[#20262E] px-2.5 py-1 rounded-md text-xs font-medium">
+        <span>
+          Вибрано:
+          <span class="font-bold text-[#20262E]">
+            @if (ledgerService.selectedAssetCount() > 0) {
+              {{ ledgerService.selectedAssetCount() }}
+            } @else {
+              {{ ledgerService.selectedCodeCount() }}
+            }
+          </span>
+        </span>
+        <button
+          (click)="ledgerService.clearSelection()"
+          class="text-[#475467] hover:text-[#20262E] underline hover:no-underline font-semibold cursor-pointer"
+          type="button"
+        >
+          Скинути
+        </button>
+      </div>
+      <div class="h-4 w-px bg-[#D7DCE2]"></div>
     }
-    <span>
+    <span class="text-[#667085]">
       Всього:
-      <span class="font-bold text-zinc-950">{{ ledgerService.totalCount() | number }}</span>
+      <span class="font-semibold text-[#20262E]">{{ ledgerService.totalCount() | number }}</span>
     </span>
+
+    <div class="h-4 w-px bg-[#D7DCE2]"></div>
 
     <button
       (click)="ledgerService.loadEntries()"
       [disabled]="ledgerService.loading()"
-      class="p-1.5 text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 rounded-md transition-colors cursor-pointer disabled:opacity-40"
+      class="p-1.5 text-[#475467] hover:text-[#20262E] bg-white border border-[#D7DCE2] hover:bg-[#E9EDF2] rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-40"
       title="Оновити"
       type="button"
     >

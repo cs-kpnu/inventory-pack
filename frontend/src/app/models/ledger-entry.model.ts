@@ -63,3 +63,25 @@ export interface RegisterAssetsRequest {
 }
 
 export type StatusFilter = 'all' | 'unregistered' | 'partial' | 'registered';
+
+export interface DetailState {
+  entry: LedgerEntryDetailDto | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export type SelectionTarget =
+  | { kind: 'row'; key: string; entry: LedgerEntrySummaryDto }
+  | {
+      kind: 'code';
+      key: string;
+      entry: LedgerEntrySummaryDto;
+      code: LedgerEntryCodeDto;
+    }
+  | {
+      kind: 'asset';
+      key: string;
+      entry: LedgerEntrySummaryDto;
+      code: LedgerEntryCodeDto;
+      assetId: string;
+    };

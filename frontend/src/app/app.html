@@ -1,11 +1,15 @@
 <div class="h-screen bg-white flex flex-col font-sans text-zinc-950 overflow-hidden">
-  <!-- Minimal Top Header -->
-  <header class="bg-white border-b border-zinc-200 shrink-0">
+  <!-- Global App Header -->
+  <header class="bg-[#202124] text-white shrink-0">
     <div class="px-4 h-10 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-bold text-zinc-950 tracking-tight">UniAccounting</span>
-        <span class="text-zinc-300">/</span>
-        <span class="text-xs font-medium text-zinc-600">Облік матеріальних цінностей</span>
+      <div class="flex items-center gap-2.5">
+        <div
+          class="w-5 h-5 rounded bg-[#303134] text-white flex items-center justify-center font-bold text-[10px] tracking-tight">
+          UA
+        </div>
+        <span class="text-sm font-semibold text-white tracking-tight">UniAccounting</span>
+        <span class="text-[#5f6368]">/</span>
+        <span class="text-xs font-normal text-[#9aa0a6]">Облік матеріальних цінностей</span>
       </div>
     </div>
   </header>
@@ -19,9 +23,9 @@
         class="px-4 py-2 bg-red-100/80 border-b border-red-200 text-red-900 text-xs font-medium flex items-center justify-between shrink-0">
         <span>{{ ledgerService.error() }}</span>
         <button
-          type="button"
           (click)="ledgerService.loadEntries()"
           class="underline hover:no-underline font-semibold"
+          type="button"
         >
           Повторити
         </button>
