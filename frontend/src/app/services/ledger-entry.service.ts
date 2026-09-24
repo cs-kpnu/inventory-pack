@@ -50,6 +50,9 @@ export class LedgerEntryService {
   get selectedAssetCount() {
     return this.selection.selectedAssetCount;
   }
+  get hasSelection() {
+    return this.selection.hasSelection;
+  }
 
   loadEntries(): void {
     this.loading.set(true);
