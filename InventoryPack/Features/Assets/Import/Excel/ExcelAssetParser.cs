@@ -61,6 +61,9 @@ public static class ExcelAssetParser
         if (IsBlankRow(row))
             return true;
 
+        if (IsSummaryText(row.Title) || IsSummaryText(row.Mvo))
+            return true;
+
         var title = row.Title?.Trim();
         if (string.IsNullOrEmpty(title))
             return false;
@@ -68,11 +71,19 @@ public static class ExcelAssetParser
         if (title.Contains("Найменування", StringComparison.OrdinalIgnoreCase))
             return true;
 
-        return title.StartsWith("---", StringComparison.Ordinal) ||
-               title.StartsWith("Всього", StringComparison.OrdinalIgnoreCase) ||
-               title.StartsWith("- Всього", StringComparison.OrdinalIgnoreCase) ||
-               title.StartsWith("Разом", StringComparison.OrdinalIgnoreCase) ||
-               title.StartsWith("- Разом", StringComparison.OrdinalIgnoreCase);
+        return title.StartsWith("---", StringComparison.Ordinal);
+    }
+
+    private static bool IsSummaryText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+
+        var trimmed = text.Trim();
+        return trimmed.StartsWith("Всього", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("- Всього", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("Разом", StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("- Разом", StringComparison.OrdinalIgnoreCase);
     }
 
     public static List<ParsedAssetRow> Parse(Stream stream)
