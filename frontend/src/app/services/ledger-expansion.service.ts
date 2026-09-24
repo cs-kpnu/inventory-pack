@@ -22,6 +22,11 @@ export class LedgerExpansionService {
     return () => this.detailLoadedHooks.delete(hook);
   }
 
+  clearExpansion(): void {
+    this.expandedRows.set(new Set());
+    this.expandedCodes.set(new Set());
+  }
+
   isRowExpanded(id: string): boolean {
     return this.expandedRows().has(id);
   }
@@ -33,6 +38,7 @@ export class LedgerExpansionService {
   toggleVisibleRows(entries: LedgerEntrySummaryDto[]): void {
     if (entries.length === 0) return;
     const collapse = entries.every((entry) => this.expandedRows().has(entry.id));
+
     this.expandedRows.update((rows) => {
       const next = new Set(rows);
       for (const entry of entries) {
@@ -41,16 +47,60 @@ export class LedgerExpansionService {
       }
       return next;
     });
-  }
 
-  toggleRow(id: string): void {
-    const opening = !this.isRowExpanded(id);
-    this.expandedRows.update((rows) => {
-      const next = new Set(rows);
-      if (opening) next.add(id);
-      else next.delete(id);
+    this.expandedCodes.update((codes) => {
+      const next = new Set(codes);
+      for (const entry of entries) {
+        for (const code of entry.codes) {
+          const codeKey = `${entry.id}:${code.id}`;
+          if (!collapse && code.groupRegisteredAssetCount > 0) {
+            next.add(codeKey);
+          } else {
+            next.delete(codeKey);
+          }
+        }
+      }
       return next;
     });
+
+    if (!collapse) {
+      for (const entry of entries) {
+        if (entry.codes.some((c) => c.groupRegisteredAssetCount > 0)) {
+          if (!this.detailStates().has(entry.id)) {
+            this.loadDetail(entry.id);
+          }
+        }
+      }
+    }
+  }
+
+  toggleRow(entry: LedgerEntrySummaryDto): void {
+    const opening = !this.isRowExpanded(entry.id);
+    this.expandedRows.update((rows) => {
+      const next = new Set(rows);
+      if (opening) next.add(entry.id);
+      else next.delete(entry.id);
+      return next;
+    });
+
+    this.expandedCodes.update((codes) => {
+      const next = new Set(codes);
+      for (const code of entry.codes) {
+        const codeKey = `${entry.id}:${code.id}`;
+        if (opening && code.groupRegisteredAssetCount > 0) {
+          next.add(codeKey);
+        } else {
+          next.delete(codeKey);
+        }
+      }
+      return next;
+    });
+
+    if (opening && entry.codes.some((c) => c.groupRegisteredAssetCount > 0)) {
+      if (!this.detailStates().has(entry.id)) {
+        this.loadDetail(entry.id);
+      }
+    }
   }
 
   isCodeExpanded(entryId: string, codeId: string): boolean {

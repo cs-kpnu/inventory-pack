@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { LedgerEntrySummaryDto, StatusFilter } from '../models/ledger-entry.model';
 import { LedgerApiService } from './ledger-api.service';
+import { LedgerExpansionService } from './ledger-expansion.service';
 import { LedgerSelectionService } from './ledger-selection.service';
 
 @Injectable({
@@ -8,6 +9,7 @@ import { LedgerSelectionService } from './ledger-selection.service';
 })
 export class LedgerEntryService {
   readonly selection = inject(LedgerSelectionService);
+  readonly expansion = inject(LedgerExpansionService);
   // State signals
   readonly entries = signal<LedgerEntrySummaryDto[]>([]);
   readonly totalCount = signal<number>(0);
@@ -52,6 +54,7 @@ export class LedgerEntryService {
   loadEntries(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.expansion.clearExpansion();
 
     this.api
       .getEntries({
@@ -62,6 +65,7 @@ export class LedgerEntryService {
       })
       .subscribe({
         next: (response) => {
+          this.expansion.clearExpansion();
           this.entries.set(response.items);
           this.totalCount.set(response.totalCount);
           this.page.set(response.page);

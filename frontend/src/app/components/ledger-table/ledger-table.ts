@@ -243,7 +243,7 @@ export class LedgerTable {
 
   toggleRow(item: LedgerEntrySummaryDto): void {
     this.ledgerService.selectEntry(item.id);
-    this.expansion.toggleRow(item.id);
+    this.expansion.toggleRow(item);
   }
 
   loadDetail(id: string): void {
