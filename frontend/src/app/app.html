@@ -1,7 +1,7 @@
 <div class="h-screen bg-white flex flex-col font-sans text-zinc-950 overflow-hidden">
   <!-- Global App Header -->
   <header class="bg-[#202124] text-white shrink-0">
-    <div class="px-4 h-10 flex items-center justify-between">
+    <div class="px-4 min-h-10 flex items-center justify-between gap-4 py-1">
       <div class="flex items-center gap-2.5">
         <div
           class="w-5 h-5 rounded bg-[#303134] text-white flex items-center justify-center font-bold text-[10px] tracking-tight">
@@ -11,8 +11,54 @@
         <span class="text-[#5f6368]">/</span>
         <span class="text-xs font-normal text-[#9aa0a6]">Облік матеріальних цінностей</span>
       </div>
+
+      <div class="shrink-0">
+        <input
+          #excelFileInput
+          (change)="uploadExcel($event)"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          class="hidden"
+          type="file"
+        />
+        <button
+          (click)="excelFileInput.click()"
+          [disabled]="importingExcel()"
+          class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-[#bdc1c6] transition-colors hover:bg-white/10 hover:text-white cursor-pointer disabled:cursor-wait disabled:opacity-50"
+          type="button"
+        >
+          <svg [size]="14" lucideUpload></svg>
+          <span>{{ importingExcel() ? 'Імпортуємо…' : 'Завантажити Excel' }}</span>
+        </button>
+      </div>
     </div>
   </header>
+
+  @if (importNotice(); as notice) {
+    <div
+      [attr.role]="notice.kind === 'error' ? 'alert' : 'status'"
+      [class.bg-amber-50]="notice.kind === 'warning'"
+      [class.bg-emerald-50]="notice.kind === 'success'"
+      [class.bg-red-50]="notice.kind === 'error'"
+      [class.border-amber-200]="notice.kind === 'warning'"
+      [class.border-emerald-200]="notice.kind === 'success'"
+      [class.border-red-200]="notice.kind === 'error'"
+      [class.text-amber-900]="notice.kind === 'warning'"
+      [class.text-emerald-900]="notice.kind === 'success'"
+      [class.text-red-900]="notice.kind === 'error'"
+      aria-live="polite"
+      class="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-2 text-xs font-medium"
+    >
+      <span>{{ notice.message }}</span>
+      <button
+        (click)="dismissImportNotice()"
+        aria-label="Закрити повідомлення про імпорт"
+        class="shrink-0 rounded p-1 opacity-70 transition-opacity hover:opacity-100 cursor-pointer"
+        type="button"
+      >
+        <svg [size]="14" lucideX></svg>
+      </button>
+    </div>
+  }
 
   <!-- Main View Area -->
   <main class="flex-1 flex flex-col min-h-0 bg-white">

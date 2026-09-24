@@ -176,6 +176,17 @@ export class LedgerEntryService {
     this.selection.clearSelection();
   }
 
+  resetAfterImport(): void {
+    this.selection.clearSelection();
+
+    if (this.search() !== '' || this.status() !== 'all' || this.page() !== 1) {
+      this.updateUrl({ search: '', status: 'all', page: 1 });
+      return;
+    }
+
+    this.loadEntries();
+  }
+
   getEntryDetail(id: string) {
     return this.api.getEntryDetail(id);
   }
