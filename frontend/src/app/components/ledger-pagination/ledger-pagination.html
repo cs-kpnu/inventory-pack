@@ -19,7 +19,7 @@
         [value]="ledgerService.pageSize()"
         class="bg-white border border-[#D7DCE2] text-[#20262E] font-medium rounded px-2 py-1 shadow-2xs focus:outline-none focus:ring-1 focus:ring-[#8091A5] cursor-pointer text-xs">
         @for (size of pageSizes; track size) {
-          <option [value]="size">{{ size }}</option>
+          <option [selected]="size === ledgerService.pageSize()" [value]="size">{{ size }}</option>
         }
       </select>
     </div>

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LedgerEntryService } from './services/ledger-entry.service';
 import { LedgerToolbar } from './components/ledger-toolbar/ledger-toolbar';
@@ -11,10 +11,6 @@ import { LedgerPagination } from './components/ledger-pagination/ledger-paginati
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements OnInit {
+export class App {
   readonly ledgerService = inject(LedgerEntryService);
-
-  ngOnInit(): void {
-    this.ledgerService.loadEntries();
-  }
 }

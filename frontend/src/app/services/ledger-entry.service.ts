@@ -1,4 +1,6 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LedgerEntrySummaryDto, StatusFilter } from '../models/ledger-entry.model';
 import { LedgerApiService } from './ledger-api.service';
 import { LedgerExpansionService } from './ledger-expansion.service';
@@ -32,7 +34,17 @@ export class LedgerEntryService {
     if (!id) return null;
     return this.entries().find((e) => e.id === id) ?? null;
   });
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly api = inject(LedgerApiService);
+  private initialized = false;
+
+  constructor() {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.handleQueryParams(params);
+    });
+  }
 
   // Backward compatibility getters for selection
   get selectedAssetIds() {
@@ -135,34 +147,28 @@ export class LedgerEntryService {
   }
 
   setSearch(query: string): void {
-    if (this.search() !== query) {
-      this.search.set(query);
-      this.page.set(1);
-      this.loadEntries();
+    const trimmed = query.trim();
+    if (this.search() !== trimmed) {
+      this.updateUrl({ search: trimmed, page: 1 });
     }
   }
 
   setStatus(status: StatusFilter): void {
     if (this.status() !== status) {
-      this.status.set(status);
-      this.page.set(1);
-      this.loadEntries();
+      this.updateUrl({ status, page: 1 });
     }
   }
 
   setPage(page: number): void {
     const validPage = Math.max(1, Math.min(page, this.totalPages()));
     if (this.page() !== validPage) {
-      this.page.set(validPage);
-      this.loadEntries();
+      this.updateUrl({ page: validPage });
     }
   }
 
   setPageSize(pageSize: number): void {
     if (this.pageSize() !== pageSize) {
-      this.pageSize.set(pageSize);
-      this.page.set(1);
-      this.loadEntries();
+      this.updateUrl({ pageSize, page: 1 });
     }
   }
 
@@ -172,5 +178,80 @@ export class LedgerEntryService {
 
   getEntryDetail(id: string) {
     return this.api.getEntryDetail(id);
+  }
+
+  private updateUrl(changes: {
+    search?: string;
+    status?: StatusFilter;
+    page?: number;
+    pageSize?: number;
+  }): void {
+    const targetSearch = changes.search !== undefined ? changes.search : this.search();
+    const targetStatus = changes.status !== undefined ? changes.status : this.status();
+    const targetPage = changes.page !== undefined ? changes.page : this.page();
+    const targetPageSize = changes.pageSize !== undefined ? changes.pageSize : this.pageSize();
+
+    const queryParams: Record<string, string | number | null> = {
+      search: targetSearch.trim() || null,
+      status: targetStatus !== 'all' ? targetStatus : null,
+      page: targetPage > 1 ? targetPage : null,
+      pageSize: targetPageSize !== 25 ? targetPageSize : null,
+    };
+
+    this.router.navigate([], {
+      queryParams,
+    });
+  }
+
+  private handleQueryParams(params: Record<string, string | undefined>): void {
+    const rawSearch = (params['search'] ?? '').trim();
+
+    const rawStatus = params['status'] as StatusFilter;
+    const validStatuses: StatusFilter[] = ['all', 'unregistered', 'partial', 'registered'];
+    const nextStatus: StatusFilter = validStatuses.includes(rawStatus) ? rawStatus : 'all';
+
+    const rawPage = parseInt(params['page'] ?? '1', 10);
+    const nextPage = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+
+    const rawPageSize = parseInt(params['pageSize'] ?? '25', 10);
+    const validPageSizes = [10, 25, 50, 100];
+    const nextPageSize = validPageSizes.includes(rawPageSize) ? rawPageSize : 25;
+
+    const changed =
+      !this.initialized ||
+      this.search() !== rawSearch ||
+      this.status() !== nextStatus ||
+      this.page() !== nextPage ||
+      this.pageSize() !== nextPageSize;
+
+    if (!changed) {
+      return;
+    }
+
+    this.initialized = true;
+    this.search.set(rawSearch);
+    this.status.set(nextStatus);
+    this.page.set(nextPage);
+    this.pageSize.set(nextPageSize);
+
+    const hasRedundantDefaults =
+      (params['search'] !== undefined && !rawSearch) ||
+      params['status'] === 'all' ||
+      params['page'] === '1' ||
+      params['pageSize'] === '25';
+
+    if (hasRedundantDefaults) {
+      this.router.navigate([], {
+        queryParams: {
+          search: rawSearch || null,
+          status: nextStatus !== 'all' ? nextStatus : null,
+          page: nextPage > 1 ? nextPage : null,
+          pageSize: nextPageSize !== 25 ? nextPageSize : null,
+        },
+        replaceUrl: true,
+      });
+    }
+
+    this.loadEntries();
   }
 }
