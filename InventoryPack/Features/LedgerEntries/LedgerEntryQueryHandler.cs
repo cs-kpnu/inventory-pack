@@ -15,10 +15,6 @@ public class LedgerEntryQueryHandler(AppDbContext db)
         int pageSize = 25,
         CancellationToken ct = default)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(page, 1);
-        ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(pageSize, 100);
-
         var query = FilterBySearch(db.LedgerEntries.AsNoTracking(), search);
         query = FilterByStatus(query, status);
 

@@ -11,10 +11,10 @@ public static class AssetsEndpoints
 
     private static async Task<IResult> RegisterAssetsAsync(
         RegisterAssetsRequest request,
-        AssetRegistrationHandler handler,
+        RegisterAssetsHandler handler,
         CancellationToken ct)
     {
-        var result = await handler.RegisterAsync(request, ct);
+        var result = await handler.HandleAsync(request, ct);
 
         return result switch
         {

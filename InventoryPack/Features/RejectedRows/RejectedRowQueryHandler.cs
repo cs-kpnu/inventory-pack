@@ -13,10 +13,6 @@ public class RejectedRowQueryHandler(AppDbContext db)
         int pageSize = 25,
         CancellationToken ct = default)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(page, 1);
-        ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(pageSize, 100);
-
         var query = FilterBySearch(db.RejectedRows.AsNoTracking(), search);
         query = FilterByReason(query, reason);
 

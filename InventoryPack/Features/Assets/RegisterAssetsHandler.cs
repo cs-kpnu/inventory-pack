@@ -18,9 +18,9 @@ public abstract record RegisterAssetsResult
     public sealed record BadRequest(string Message) : RegisterAssetsResult;
 }
 
-public class AssetRegistrationHandler(AppDbContext db)
+public class RegisterAssetsHandler(AppDbContext db)
 {
-    public async Task<RegisterAssetsResult> RegisterAsync(
+    public async Task<RegisterAssetsResult> HandleAsync(
         RegisterAssetsRequest request,
         CancellationToken ct = default)
     {

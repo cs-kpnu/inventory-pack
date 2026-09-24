@@ -16,7 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddKeyedSingleton<IAssetImporter, ExcelAssetImporter>(".xlsx");
 builder.Services.AddScoped<ImportAssetsHandler>();
-builder.Services.AddScoped<AssetRegistrationHandler>();
+builder.Services.AddScoped<RegisterAssetsHandler>();
 builder.Services.AddScoped<LedgerEntryQueryHandler>();
 builder.Services.AddScoped<RejectedRowQueryHandler>();
 
