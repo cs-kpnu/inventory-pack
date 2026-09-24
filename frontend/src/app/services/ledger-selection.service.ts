@@ -194,6 +194,18 @@ export class LedgerSelectionService {
     }
   }
 
+  syncEntrySnapshots(entries: LedgerEntrySummaryDto[]): void {
+    this.selectedEntrySnapshots.update((snapshots) => {
+      const next = new Map(snapshots);
+      for (const entry of entries) {
+        if (next.has(entry.id)) {
+          next.set(entry.id, entry);
+        }
+      }
+      return next;
+    });
+  }
+
   clearSelection(): void {
     this.selectedCodesByEntry.set(new Map());
     this.selectedAssetIds.set(new Set());

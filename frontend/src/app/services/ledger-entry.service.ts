@@ -57,10 +57,12 @@ export class LedgerEntryService {
     return this.selection.selectedEntries;
   }
 
-  loadEntries(): void {
+  loadEntries(preserveExpansion = false): void {
     this.loading.set(true);
     this.error.set(null);
-    this.expansion.clearExpansion();
+    if (!preserveExpansion) {
+      this.expansion.clearExpansion();
+    }
 
     this.api
       .getEntries({
@@ -71,8 +73,11 @@ export class LedgerEntryService {
       })
       .subscribe({
         next: (response) => {
-          this.expansion.clearExpansion();
+          if (!preserveExpansion) {
+            this.expansion.clearExpansion();
+          }
           this.entries.set(response.items);
+          this.selection.syncEntrySnapshots(response.items);
           this.totalCount.set(response.totalCount);
           this.page.set(response.page);
           this.pageSize.set(response.pageSize);

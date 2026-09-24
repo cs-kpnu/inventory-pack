@@ -27,6 +27,14 @@ export class LedgerExpansionService {
     this.expandedCodes.set(new Set());
   }
 
+  expandRow(id: string): void {
+    this.expandedRows.update((rows) => new Set(rows).add(id));
+  }
+
+  expandCode(entryId: string, codeId: string): void {
+    this.expandedCodes.update((codes) => new Set(codes).add(`${entryId}:${codeId}`));
+  }
+
   isRowExpanded(id: string): boolean {
     return this.expandedRows().has(id);
   }
@@ -161,5 +169,14 @@ export class LedgerExpansionService {
         );
       },
     });
+  }
+
+  refreshDetail(id: string, onLoaded?: (detail: LedgerEntryDetailDto) => void): void {
+    this.detailStates.update((states) => {
+      const next = new Map(states);
+      next.delete(id);
+      return next;
+    });
+    this.loadDetail(id, onLoaded);
   }
 }

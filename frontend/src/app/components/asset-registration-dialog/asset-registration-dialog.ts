@@ -13,6 +13,7 @@ import {
   LedgerEntryCodeDto,
   LedgerEntrySummaryDto,
   RegisterAssetsRequest,
+  RegisteredAssetDto,
 } from '../../models/ledger-entry.model';
 import { AssetRegistrationService } from '../../services/asset-registration.service';
 
@@ -26,7 +27,10 @@ export class AssetRegistrationDialog {
   readonly selectedCodeIdsByEntry = input.required<Map<string, Set<string>>>();
   readonly unlistedCodeCount = input(0);
   readonly dismiss = output<void>();
-  readonly registered = output<void>();
+  readonly registered = output<{
+    requests: RegisterAssetsRequest[];
+    results: RegisteredAssetDto[][];
+  }>();
 
   readonly quantities = signal<Map<string, string>>(new Map());
   readonly submitting = signal(false);
@@ -183,7 +187,7 @@ export class AssetRegistrationDialog {
           this.registrationService.complete(requests);
           this.registeredAssetCount.set(registeredCount);
           this.submitting.set(false);
-          this.registered.emit();
+          this.registered.emit({ requests, results });
         },
         error: (error: unknown) => {
           this.errorMessage.set(this.registrationError(error));

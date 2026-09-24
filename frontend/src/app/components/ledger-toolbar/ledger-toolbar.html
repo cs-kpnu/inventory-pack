@@ -78,7 +78,7 @@
 @if (registrationDialogOpen()) {
   <app-asset-registration-dialog
     (dismiss)="closeRegistrationDialog()"
-    (registered)="handleRegistrationSuccess()"
+    (registered)="handleRegistrationSuccess($event)"
     [entries]="selectionService.selectedEntries()"
     [selectedCodeIdsByEntry]="selectionService.selectedCodesByEntry()"
     [unlistedCodeCount]="unlistedSelectedCodeCount()"
