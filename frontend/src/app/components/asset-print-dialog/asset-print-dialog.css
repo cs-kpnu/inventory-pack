@@ -3,3 +3,52 @@
     zoom: 1.25;
   }
 }
+
+/* Only the opt-in experiment overrides the existing label sizes. */
+.label-preview-card.scale-label-content {
+  padding: 0 calc(2.5mm * var(--label-content-scale)) calc(2.5mm * var(--label-content-scale));
+}
+
+.scale-label-content .label-code {
+  font-size: calc(18px * var(--label-content-scale));
+}
+
+.scale-label-content .label-payload {
+  font-size: calc(12px * var(--label-content-scale));
+}
+
+.scale-label-content .label-mvo {
+  font-size: calc(7.5px * var(--label-content-scale));
+  margin-top: calc(0.25rem * var(--label-content-scale));
+}
+
+.scale-label-content .label-qr {
+  width: calc(23mm * var(--label-content-scale));
+  height: calc(23mm * var(--label-content-scale));
+}
+
+.scale-label-content .label-body {
+  gap: calc(0.375rem * var(--label-content-scale));
+  padding-block: calc(0.25rem * var(--label-content-scale));
+}
+
+.scale-label-content .label-text {
+  padding-right: calc(0.25rem * var(--label-content-scale));
+}
+
+.scale-label-content .label-header {
+  /* Scale the inherited line box too: shrinking only its span leaves a full-size header. */
+  font-size: calc(1rem * var(--label-content-scale));
+  line-height: calc(1.5rem * var(--label-content-scale));
+  padding-bottom: calc(0.125rem * var(--label-content-scale));
+}
+
+.scale-label-content .label-footer {
+  padding-top: calc(0.125rem * var(--label-content-scale));
+}
+
+@media print {
+  .thermal-label-page.scale-label-content {
+    padding: 0 calc(3mm * var(--label-content-scale)) calc(2.5mm * var(--label-content-scale)) !important;
+  }
+}

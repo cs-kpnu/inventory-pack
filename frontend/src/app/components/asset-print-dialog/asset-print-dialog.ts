@@ -1,9 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, HostListener, inject, output, signal } from '@angular/core';
+import { Component, computed, effect, HostListener, inject, output, signal } from '@angular/core';
 import { LucidePrinter, LucideRotateCw, LucideX } from '@lucide/angular';
 import { PrintableLabelItem } from '../../models/printable-label.model';
 import { AssetPrintService } from '../../services/asset-print.service';
 import { LedgerSelectionService } from '../../services/ledger-selection.service';
+
+const DEFAULT_LABEL_WIDTH_MM = 72;
+const DEFAULT_LABEL_HEIGHT_MM = 40;
 
 @Component({
   selector: 'app-asset-print-dialog',
@@ -20,8 +23,17 @@ export class AssetPrintDialog {
   readonly loading = signal(true);
   readonly preparedLabels = signal<PrintableLabelItem[]>([]);
   readonly showMvo = signal(false);
-  readonly labelWidthMm = signal(58);
-  readonly labelHeightMm = signal(40);
+  readonly labelWidthMm = signal(DEFAULT_LABEL_WIDTH_MM);
+  readonly labelHeightMm = signal(DEFAULT_LABEL_HEIGHT_MM);
+  readonly scaleContent = signal(false);
+  readonly contentScale = computed(() =>
+    this.scaleContent()
+      ? Math.min(
+          this.labelWidthMm() / DEFAULT_LABEL_WIDTH_MM,
+          this.labelHeightMm() / DEFAULT_LABEL_HEIGHT_MM,
+        )
+      : 1,
+  );
 
   constructor() {
     this.printService.ensureSelectedDetailsLoaded();
@@ -48,6 +60,10 @@ export class AssetPrintDialog {
     this.showMvo.set(input.checked);
   }
 
+  toggleContentScaling(event: Event): void {
+    this.scaleContent.set((event.target as HTMLInputElement).checked);
+  }
+
   setLabelWidth(event: Event): void {
     const value = this.readDimension(event);
     if (value !== null) this.labelWidthMm.set(value);
@@ -67,8 +83,9 @@ export class AssetPrintDialog {
   }
 
   resetLabelDimensions(): void {
-    this.labelWidthMm.set(58);
-    this.labelHeightMm.set(40);
+    this.labelWidthMm.set(DEFAULT_LABEL_WIDTH_MM);
+    this.labelHeightMm.set(DEFAULT_LABEL_HEIGHT_MM);
+    this.scaleContent.set(false);
   }
 
   print(): void {

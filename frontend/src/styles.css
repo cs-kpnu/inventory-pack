@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --thermal-label-width: 58mm;
+  --thermal-label-width: 72mm;
   --thermal-label-height: 40mm;
 }
 

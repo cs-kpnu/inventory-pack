@@ -64,11 +64,29 @@
       <button
         (click)="resetLabelDimensions()"
         class="text-xs font-medium text-[#667085] underline-offset-2 hover:text-[#202124] hover:underline cursor-pointer"
-        title="Скинути до 58 × 40 мм"
+        title="Скинути до 72 × 40 мм"
         type="button"
       >
         Скинути
       </button>
+      <label class="inline-flex items-center gap-2 text-xs text-[#475467] cursor-pointer select-none">
+        <input
+          (change)="toggleContentScaling($event)"
+          [checked]="scaleContent()"
+          class="w-3.5 h-3.5 accent-[#202124] cursor-pointer"
+          type="checkbox"
+        />
+        <span>Масштабувати вміст</span>
+      </label>
+      <label class="inline-flex items-center gap-2 text-xs text-[#475467] cursor-pointer select-none">
+        <input
+          (change)="toggleMvo($event)"
+          [checked]="showMvo()"
+          class="w-3.5 h-3.5 accent-[#202124] cursor-pointer"
+          type="checkbox"
+        />
+        <span>Показувати МВО</span>
+      </label>
     </div>
 
     <!-- Preview Canvas -->
@@ -88,31 +106,37 @@
         <div class="flex flex-col items-center gap-4">
           @for (item of preparedLabels(); track item.assetId) {
             <div
+              [class.scale-label-content]="scaleContent()"
+              [style.--label-content-scale]="contentScale()"
               [style.height.mm]="labelHeightMm()"
               [style.width.mm]="labelWidthMm()"
               class="label-preview-card pt-0 px-[2.5mm] pb-[2.5mm] bg-white border border-[#D7DCE2] rounded shadow-xs flex flex-col justify-between select-none shrink-0 overflow-hidden"
             >
               <!-- Top row: Code only -->
-              <div class="border-b border-black/15 pb-0.5 shrink-0">
-                <span class="font-mono font-bold text-[11px] leading-none text-black tracking-tight">
+              <div class="label-header border-b border-black/15 pb-0.5 shrink-0">
+                <span class="label-code font-mono font-bold text-[18px] leading-none text-black tracking-tight">
                   {{ item.code }}
                 </span>
               </div>
 
               <!-- Middle row: Name & optional MVO left, QR right -->
-              <div class="flex items-center justify-between gap-1.5 my-auto min-h-0 flex-1 py-1">
-                <div class="flex flex-col justify-center min-w-0 flex-1 pr-1">
-                  <div class="text-[9.5px] font-semibold text-black leading-[1.25] line-clamp-3 break-words">
+              <div class="label-body flex items-center justify-between gap-1.5 my-auto min-h-0 flex-1 py-1 overflow-hidden">
+                <div class="label-text flex flex-col justify-center self-stretch min-w-0 min-h-0 flex-1 pr-1 overflow-hidden">
+                  <div
+                    [style.font-size.px]="(showMvo() && item.mvo ? 20 : 24) * contentScale()"
+                    [title]="item.name"
+                    class="label-name min-h-0 text-[24px] font-semibold text-black leading-[1.15] line-clamp-3 break-words"
+                  >
                     {{ item.name }}
                   </div>
                   @if (showMvo() && item.mvo) {
-                    <div class="text-[7.5px] text-zinc-700 leading-tight truncate mt-1">
+                    <div class="label-mvo text-[7.5px] text-zinc-700 leading-tight truncate mt-1 shrink-0">
                       <span class="text-zinc-500">МВО:</span> {{ item.mvo }}
                     </div>
                   }
                 </div>
 
-                <div class="w-[23mm] h-[23mm] shrink-0 bg-white flex items-center justify-center">
+                <div class="label-qr w-[23mm] h-[23mm] shrink-0 bg-white flex items-center justify-center">
                   @if (item.qrDataUrl) {
                     <img
                       [src]="item.qrDataUrl"
@@ -128,8 +152,8 @@
               </div>
 
               <!-- Bottom row: Canonical Payload -->
-              <div class="pt-0.5 border-t border-black/15 flex items-center justify-between shrink-0">
-                <span class="font-mono text-[6.5px] leading-tight text-zinc-800 tracking-tight truncate">
+              <div class="label-footer pt-0.5 border-t border-black/15 flex items-center justify-between shrink-0">
+                <span class="label-payload font-mono text-[12px] leading-tight text-zinc-800 tracking-tight truncate">
                   {{ item.payload }}
                 </span>
               </div>
@@ -143,26 +167,10 @@
     <div
       class="print-dialog-footer flex items-center justify-between px-6 py-3.5 bg-white border-t border-[#D7DCE2] shrink-0"
     >
-      <div class="flex items-center gap-4 text-xs">
-        <span class="text-[#667085]">
-          До друку:
-          <span class="font-bold text-[#202124]">{{ preparedLabels().length }} шт.</span>
-        </span>
-
-        <span class="text-[#D7DCE2]">·</span>
-
-        <label
-          class="inline-flex items-center gap-1.5 cursor-pointer select-none text-[#475467] hover:text-[#202124] transition-colors"
-        >
-          <input
-            (change)="toggleMvo($event)"
-            [checked]="showMvo()"
-            class="w-3.5 h-3.5 rounded border-[#D7DCE2] text-[#202124] accent-[#202124] cursor-pointer"
-            type="checkbox"
-          />
-          <span>Показувати МВО</span>
-        </label>
-      </div>
+      <span class="text-xs text-[#667085]">
+        До друку:
+        <span class="font-bold text-[#202124]">{{ preparedLabels().length }} шт.</span>
+      </span>
 
       <div class="flex items-center gap-3">
         <button
@@ -190,28 +198,35 @@
 <!-- Dedicated Print Sheet for window.print() -->
 <div class="hidden" id="thermal-print-output">
   @for (item of preparedLabels(); track item.assetId) {
-    <div class="thermal-label-page">
+    <div
+      [class.scale-label-content]="scaleContent()"
+      [style.--label-content-scale]="contentScale()"
+      class="thermal-label-page"
+    >
       <!-- Top row: Code only -->
-      <div class="border-b border-black/20 pb-0.5 shrink-0">
-        <span class="font-mono font-bold text-[11px] leading-none text-black tracking-tight">
+      <div class="label-header border-b border-black/20 pb-0.5 shrink-0">
+        <span class="label-code font-mono font-bold text-[18px] leading-none text-black tracking-tight">
           {{ item.code }}
         </span>
       </div>
 
       <!-- Middle row: Name & optional MVO left, QR right -->
-      <div class="flex items-center justify-between gap-1.5 my-auto min-h-0 flex-1 py-1">
-        <div class="flex flex-col justify-center min-w-0 flex-1 pr-1">
-          <div class="text-[9.5px] font-semibold text-black leading-[1.25] line-clamp-3 break-words">
+      <div class="label-body flex items-center justify-between gap-1.5 my-auto min-h-0 flex-1 py-1 overflow-hidden">
+        <div class="label-text flex flex-col justify-center self-stretch min-w-0 min-h-0 flex-1 pr-1 overflow-hidden">
+          <div
+            [style.font-size.px]="(showMvo() && item.mvo ? 20 : 24) * contentScale()"
+            class="label-name min-h-0 text-[24px] font-semibold text-black leading-[1.15] line-clamp-3 break-words"
+          >
             {{ item.name }}
           </div>
           @if (showMvo() && item.mvo) {
-            <div class="text-[7.5px] text-black leading-tight truncate mt-1">
+            <div class="label-mvo text-[7.5px] text-black leading-tight truncate mt-1 shrink-0">
               <span>МВО:</span> {{ item.mvo }}
             </div>
           }
         </div>
 
-        <div class="w-[23mm] h-[23mm] shrink-0 bg-white flex items-center justify-center">
+        <div class="label-qr w-[23mm] h-[23mm] shrink-0 bg-white flex items-center justify-center">
           @if (item.qrDataUrl) {
             <img
               [src]="item.qrDataUrl"
@@ -223,8 +238,8 @@
       </div>
 
       <!-- Bottom row: Canonical Payload -->
-      <div class="pt-0.5 border-t border-black/20 flex items-center justify-between shrink-0">
-        <span class="font-mono text-[6.5px] leading-tight text-black tracking-tight truncate">
+      <div class="label-footer pt-0.5 border-t border-black/20 flex items-center justify-between shrink-0">
+        <span class="label-payload font-mono text-[12px] leading-tight text-black tracking-tight truncate">
           {{ item.payload }}
         </span>
       </div>
