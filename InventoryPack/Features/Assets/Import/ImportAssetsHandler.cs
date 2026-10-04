@@ -44,7 +44,10 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
                 var group = groupsByCode[code];
                 entry.Codes.Add(new LedgerEntryCode
                 {
-                    LedgerEntryId = entry.Id, LedgerEntry = entry, CodeGroupId = group.Id, CodeGroup = group
+                    LedgerEntryId = entry.Id,
+                    LedgerEntry = entry,
+                    CodeGroupId = group.Id,
+                    CodeGroup = group
                 });
             }
 

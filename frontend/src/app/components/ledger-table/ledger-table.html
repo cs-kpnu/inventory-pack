@@ -3,9 +3,9 @@
   style="scrollbar-gutter: stable"
   tabindex="0"
 >
-  <table class="w-full table-fixed text-left border-collapse text-xs">
+  <table class="w-full min-w-[960px] table-fixed text-left border-collapse text-xs">
     <thead class="sticky top-0 bg-[#E9EDF2] border-b border-[#C8D0D9] z-10">
-    <tr class="text-[11px] font-semibold text-[#344054] uppercase tracking-wider">
+    <tr class="text-[11px] font-semibold text-[#344054] uppercase tracking-wider whitespace-nowrap">
       <th class="relative w-9 p-0">
         <label class="absolute inset-0 flex cursor-pointer select-none items-center justify-center pl-1">
           <input
@@ -23,7 +23,7 @@
           />
         </label>
       </th>
-      <th class="py-2.5 pl-3 pr-2 w-20">
+      <th class="py-2.5 pl-3 pr-2 w-16">
         <div class="flex items-center justify-between">
           <button
             (click)="toggleVisibleRows()"
@@ -49,12 +49,12 @@
           <span class="text-[#667085] font-normal">#</span>
         </div>
       </th>
-      <th class="py-2.5 px-3 w-24">Рахунок</th>
-      <th class="py-2.5 px-3">Найменування</th>
-      <th class="py-2.5 px-3 w-48">МВО</th>
-      <th class="py-2.5 px-3 w-20 text-right">К-сть</th>
-      <th class="py-2.5 px-2 w-16">Од.</th>
-      <th class="py-2.5 pl-3 pr-4 w-52">Коди</th>
+      <th class="py-2.5 px-3 w-20">Рахунок</th>
+      <th class="py-2.5 px-3 w-full">Найменування</th>
+      <th class="py-2.5 px-3 w-44">МВО</th>
+      <th class="py-2.5 px-3 w-16 text-right">К-сть</th>
+      <th class="py-2.5 px-2 w-14">Од.</th>
+      <th class="py-2.5 pl-3 pr-4 w-48">Коди</th>
     </tr>
     </thead>
 
@@ -128,9 +128,9 @@
           </td>
 
           <!-- MVO -->
-          <td class="py-2 px-3 text-[#475467]">
+          <td class="py-2 px-3 text-[#475467] truncate">
             @if (item.mvo) {
-              <span>{{ item.mvo }}</span>
+              <span [title]="item.mvo">{{ item.mvo }}</span>
             } @else {
               <span class="text-[#7C8796] italic">Не вказано</span>
             }

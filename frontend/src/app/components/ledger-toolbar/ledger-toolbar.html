@@ -1,88 +1,95 @@
 <div
-  class="flex flex-wrap items-center justify-between gap-4 px-4 py-2 bg-[#F8F9FB] border-b border-[#D7DCE2] shrink-0 text-[#344054]"
+  class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-4 py-2 bg-[#F8F9FB] border-b border-[#D7DCE2] shrink-0 text-[#344054]"
 >
-  <div class="flex flex-wrap items-center gap-4 flex-1 min-w-[300px]">
-    <div class="w-80">
+  <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3 flex-1 sm:flex-initial min-w-0">
+    <div class="w-full sm:w-64 min-w-0">
       <app-ledger-search/>
     </div>
-    <app-status-filter/>
+    <app-status-filter class="shrink-0"/>
   </div>
 
-  <div class="flex items-center gap-3 text-xs text-[#475467]">
-    @if (ledgerService.selectedCodeCount() > 0) {
-      <button
-        (click)="openRegistrationDialog()"
-        class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#202124] hover:bg-[#303134] text-white rounded-md text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-        type="button"
-      >
-        <svg [size]="13" lucidePlus></svg>
-        <span>Зареєструвати</span>
-      </button>
-    }
-
-    @if (ledgerService.selectedAssetCount() > 0) {
-      <button
-        (click)="openPrintDialog()"
-        class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#F2F4F7] text-[#202124] border border-[#D7DCE2] rounded-md text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
-        type="button"
-      >
-        <svg [size]="13" lucidePrinter></svg>
-        <span>Друк етикеток</span>
-      </button>
-    }
-
-    @if (ledgerService.hasSelection()) {
-      <div
-        class="flex items-center gap-2 bg-[#E9EDF2] border border-[#D7DCE2] text-[#20262E] px-2.5 py-1 rounded-md text-xs font-medium"
-      >
-        <span class="text-[#475467]">Вибрано:</span>
-
-        <div class="flex items-center gap-1.5">
-          @if (ledgerService.selectedCodeCount() > 0) {
-            <span class="inline-flex items-center gap-1">
-              <span class="text-[#667085]">кодів:</span>
-              <span class="font-bold text-[#20262E] font-mono">{{ ledgerService.selectedCodeCount() }}</span>
-            </span>
-          }
-
-          @if (ledgerService.selectedCodeCount() > 0 && ledgerService.selectedAssetCount() > 0) {
-            <span class="text-[#98A2B3]">·</span>
-          }
-
-          @if (ledgerService.selectedAssetCount() > 0) {
-            <span class="inline-flex items-center gap-1">
-              <span class="text-[#667085]">об'єктів:</span>
-              <span class="font-bold text-[#20262E] font-mono">{{ ledgerService.selectedAssetCount() }}</span>
-            </span>
-          }
-        </div>
-
+  <div class="flex items-center gap-2 sm:gap-2.5 text-xs text-[#475467] flex-wrap justify-between sm:justify-end w-full sm:w-auto">
+    <div class="flex items-center gap-2 flex-wrap">
+      @if (ledgerService.selectedCodeCount() > 0) {
         <button
-          (click)="ledgerService.clearSelection()"
-          class="text-[#475467] hover:text-[#20262E] underline hover:no-underline font-semibold cursor-pointer ml-0.5"
+          (click)="openRegistrationDialog()"
+          class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#202124] hover:bg-[#303134] text-white rounded-md text-xs font-semibold shadow-2xs transition-colors cursor-pointer whitespace-nowrap"
           type="button"
         >
-          Скинути
+          <svg [size]="13" lucidePlus></svg>
+          <span>Зареєструвати</span>
         </button>
-      </div>
+      }
+
+      @if (ledgerService.selectedAssetCount() > 0) {
+        <button
+          (click)="openPrintDialog()"
+          class="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#F2F4F7] text-[#202124] border border-[#D7DCE2] rounded-md text-xs font-semibold shadow-2xs transition-colors cursor-pointer whitespace-nowrap"
+          type="button"
+        >
+          <svg [size]="13" lucidePrinter></svg>
+          <span>Друк етикеток</span>
+        </button>
+      }
+
+      @if (ledgerService.hasSelection()) {
+        <div
+          class="flex items-center gap-1.5 sm:gap-2 bg-[#E9EDF2] border border-[#D7DCE2] text-[#20262E] px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap"
+        >
+          <span class="text-[#475467]">Вибрано:</span>
+
+          <div class="flex items-center gap-1.5">
+            @if (ledgerService.selectedCodeCount() > 0) {
+              <span class="inline-flex items-center gap-1">
+                <span class="text-[#667085]">кодів:</span>
+                <span class="font-bold text-[#20262E] font-mono">{{ ledgerService.selectedCodeCount() }}</span>
+              </span>
+            }
+
+            @if (ledgerService.selectedCodeCount() > 0 && ledgerService.selectedAssetCount() > 0) {
+              <span class="text-[#98A2B3]">·</span>
+            }
+
+            @if (ledgerService.selectedAssetCount() > 0) {
+              <span class="inline-flex items-center gap-1">
+                <span class="text-[#667085]">об'єктів:</span>
+                <span class="font-bold text-[#20262E] font-mono">{{ ledgerService.selectedAssetCount() }}</span>
+              </span>
+            }
+          </div>
+
+          <button
+            (click)="ledgerService.clearSelection()"
+            class="text-[#475467] hover:text-[#20262E] underline hover:no-underline font-semibold cursor-pointer ml-0.5"
+            type="button"
+          >
+            Скинути
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="flex items-center gap-2 sm:gap-3 ml-auto sm:ml-0">
+      @if (ledgerService.hasSelection()) {
+        <div class="hidden sm:block h-4 w-px bg-[#D7DCE2]"></div>
+      }
+      <span class="text-[#667085] whitespace-nowrap">
+        Всього:
+        <span class="font-semibold text-[#20262E]">{{ ledgerService.totalCount() | number }}</span>
+      </span>
+
       <div class="h-4 w-px bg-[#D7DCE2]"></div>
-    }
-    <span class="text-[#667085]">
-      Всього:
-      <span class="font-semibold text-[#20262E]">{{ ledgerService.totalCount() | number }}</span>
-    </span>
 
-    <div class="h-4 w-px bg-[#D7DCE2]"></div>
-
-    <button
-      (click)="ledgerService.loadEntries()"
-      [disabled]="ledgerService.loading()"
-      class="p-1.5 text-[#475467] hover:text-[#20262E] bg-white border border-[#D7DCE2] hover:bg-[#E9EDF2] rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-40"
-      title="Оновити"
-      type="button"
-    >
-      <svg [class.animate-spin]="ledgerService.loading()" [size]="14" lucideRotateCw></svg>
-    </button>
+      <button
+        (click)="ledgerService.loadEntries()"
+        [disabled]="ledgerService.loading()"
+        class="p-1.5 text-[#475467] hover:text-[#20262E] bg-white border border-[#D7DCE2] hover:bg-[#E9EDF2] rounded-md shadow-2xs transition-colors cursor-pointer disabled:opacity-40 shrink-0"
+        title="Оновити"
+        type="button"
+      >
+        <svg [class.animate-spin]="ledgerService.loading()" [size]="14" lucideRotateCw></svg>
+      </button>
+    </div>
   </div>
 </div>
 
