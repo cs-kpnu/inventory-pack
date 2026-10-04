@@ -209,12 +209,15 @@ Accept: application/json
 GET {{HostAddress}}/api/rejected-rows?search=13027&page=1&pageSize=10
 Accept: application/json
 
-### Rejected rows: Filter by reason (NoSingleCode)
-GET {{HostAddress}}/api/rejected-rows?reason=NoSingleCode&page=1&pageSize=10
+### Rejected rows: Filter by reason (NoValidCodes)
+GET {{HostAddress}}/api/rejected-rows?reason=NoValidCodes&page=1&pageSize=10
 Accept: application/json
 
-### Rejected rows: Filter by reason (DuplicateCode)
-GET {{HostAddress}}/api/rejected-rows?reason=DuplicateCode&page=1&pageSize=10
+### Rejected rows: Filter by reason (RepeatedCodeWithinRow)
+GET {{HostAddress}}/api/rejected-rows?reason=RepeatedCodeWithinRow&page=1&pageSize=10
+
+### Rejected rows: Filter by reason (ConflictingNamesForCode)
+GET {{HostAddress}}/api/rejected-rows?reason=ConflictingNamesForCode&page=1&pageSize=10
 Accept: application/json
 
 ### Rejected rows: Filter by reason (CodeQuantityMismatch)

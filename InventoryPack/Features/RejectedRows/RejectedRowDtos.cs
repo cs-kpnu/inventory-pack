@@ -8,7 +8,16 @@ public record RejectedRowDto(
     string? Unit,
     string? Mvo,
     string? Subaccount,
-    IReadOnlyList<string> Reasons
+    string? ParsedName,
+    int ParsedCodeCount,
+    IReadOnlyList<RejectionIssueDto> Issues
+);
+
+public record RejectionIssueDto(
+    Guid Id,
+    string Reason,
+    string? Code,
+    IReadOnlyList<int> RelatedRowNumbers
 );
 
 public record RejectedRowListResponse(

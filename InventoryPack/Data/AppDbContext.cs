@@ -18,7 +18,8 @@ public sealed class AppDbContext : DbContext
     public DbSet<CodeGroup> CodeGroups => Set<CodeGroup>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<RejectedRow> RejectedRows => Set<RejectedRow>();
-    public DbSet<RejectedRowReason> RejectedRowReasons => Set<RejectedRowReason>();
+    public DbSet<RejectionIssue> RejectionIssues => Set<RejectionIssue>();
+    public DbSet<RejectedRowIssue> RejectedRowIssues => Set<RejectedRowIssue>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -97,24 +98,38 @@ public sealed class AppDbContext : DbContext
             entity.HasKey(r => r.Id);
 
             entity.Property(r => r.RawText).HasMaxLength(2000);
+            entity.Property(r => r.ParsedName).HasMaxLength(500);
             entity.Property(r => r.Unit).HasMaxLength(50);
             entity.Property(r => r.Subaccount).HasMaxLength(32);
             entity.Property(r => r.Mvo).HasMaxLength(150);
             entity.Property(r => r.Quantity).HasPrecision(18, 4);
 
-            entity.HasMany(r => r.Reasons)
-                .WithOne(re => re.RejectedRow)
-                .HasForeignKey(re => re.RejectedRowId)
-                .OnDelete(DeleteBehavior.Cascade);
-
             entity.HasIndex(r => r.RowNumber);
         });
 
-        modelBuilder.Entity<RejectedRowReason>(entity =>
+        modelBuilder.Entity<RejectionIssue>(entity =>
         {
-            entity.HasKey(re => new { re.RejectedRowId, re.Reason });
-            entity.Property(re => re.Reason).HasConversion<string>().HasMaxLength(50);
-            entity.HasIndex(re => re.Reason);
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.Reason).HasConversion<string>().HasMaxLength(50);
+            entity.Property(i => i.Code).HasMaxLength(32);
+            entity.HasIndex(i => i.Reason);
+        });
+
+        modelBuilder.Entity<RejectedRowIssue>(entity =>
+        {
+            entity.HasKey(link => new { link.RejectedRowId, link.RejectionIssueId });
+
+            entity.HasOne(link => link.RejectedRow)
+                .WithMany(row => row.Issues)
+                .HasForeignKey(link => link.RejectedRowId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(link => link.RejectionIssue)
+                .WithMany(issue => issue.Rows)
+                .HasForeignKey(link => link.RejectionIssueId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(link => link.RejectionIssueId);
         });
     }
 }

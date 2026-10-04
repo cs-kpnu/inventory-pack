@@ -28,39 +28,9 @@ public class GetRejectedRowsHandler(AppDbContext db)
             .ThenBy(r => r.Id)
             .Skip((int)offset)
             .Take(pageSize)
-            .Select(r => new
-            {
-                r.Id,
-                r.RowNumber,
-                r.RawText,
-                r.Quantity,
-                r.Unit,
-                r.Mvo,
-                r.Subaccount
-            })
             .ToListAsync(ct);
 
-        var rowIds = rows.Select(r => r.Id).ToList();
-        var reasonsByRow = await db.RejectedRowReasons.AsNoTracking()
-            .Where(re => rowIds.Contains(re.RejectedRowId))
-            .ToListAsync(ct);
-
-        var reasonsLookup = reasonsByRow
-            .GroupBy(re => re.RejectedRowId)
-            .ToDictionary(
-                g => g.Key,
-                g => (IReadOnlyList<string>)g.Select(x => x.Reason.ToString()).OrderBy(s => s).ToList());
-
-        var items = rows.Select(r => new RejectedRowDto(
-            r.Id,
-            r.RowNumber,
-            r.RawText,
-            r.Quantity,
-            r.Unit,
-            r.Mvo,
-            r.Subaccount,
-            reasonsLookup.GetValueOrDefault(r.Id, [])
-        )).ToList();
+        var items = await RejectedRowMapping.MapAsync(db, rows, ct);
 
         return new RejectedRowListResponse(items, page, pageSize, totalCount, totalReasonCounts);
     }
@@ -92,14 +62,17 @@ public class GetRejectedRowsHandler(AppDbContext db)
         if (reason is null)
             return query;
 
-        return query.Where(r => r.Reasons.Any(re => re.Reason == reason.Value));
+        return query.Where(r => r.Issues.Any(link => link.RejectionIssue.Reason == reason.Value));
     }
 
     private async Task<IReadOnlyDictionary<string, int>> LoadTotalReasonCountsAsync(CancellationToken ct)
     {
-        var counts = await db.RejectedRowReasons.AsNoTracking()
-            .GroupBy(re => re.Reason)
-            .Select(g => new { Reason = g.Key.ToString(), Count = g.Count() })
+        var counts = await db.RejectedRowIssues.AsNoTracking()
+            .GroupBy(link => link.RejectionIssue.Reason)
+            .Select(g => new
+            {
+                Reason = g.Key.ToString(), Count = g.Select(link => link.RejectedRowId).Distinct().Count()
+            })
             .ToListAsync(ct);
 
         return counts.ToDictionary(x => x.Reason, x => x.Count);

@@ -34,7 +34,7 @@ public static class RejectedRowsEndpoints
         if (!string.IsNullOrWhiteSpace(reason) &&
             !string.Equals(reason.Trim(), "all", StringComparison.OrdinalIgnoreCase))
         {
-            if (!Enum.TryParse<RejectionReason>(reason.Trim(), true, out var parsed))
+            if (!Enum.TryParse<RejectionReason>(reason.Trim(), true, out var parsed) || !Enum.IsDefined(parsed))
                 return Results.BadRequest(
                     $"Reason must be 'all' or one of: {string.Join(", ", Enum.GetNames<RejectionReason>())}.");
             filterReason = parsed;

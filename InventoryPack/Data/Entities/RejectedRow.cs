@@ -9,7 +9,9 @@ public class RejectedRow
     public int RowNumber { get; set; }
     public required string RawText { get; set; }
     public string? Unit { get; set; }
-    public List<RejectedRowReason> Reasons { get; set; } = [];
+    public string? ParsedName { get; set; }
+    public int ParsedCodeCount { get; set; }
+    public List<RejectedRowIssue> Issues { get; set; } = [];
     public string? Subaccount { get; set; }
     public string? Mvo { get; set; }
     public decimal? Quantity { get; set; }

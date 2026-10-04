@@ -20,7 +20,8 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
             throw new ImportAlreadyExistsException(
                 "An import has already been completed. Repeated imports are not supported yet.");
 
-        await db.RejectedRowReasons.ExecuteDeleteAsync(ct);
+        await db.RejectedRowIssues.ExecuteDeleteAsync(ct);
+        await db.RejectionIssues.ExecuteDeleteAsync(ct);
         await db.RejectedRows.ExecuteDeleteAsync(ct);
 
         var groupsByCode = await ResolveCodeGroupsAsync(result.ValidatedRows, ct);
@@ -44,10 +45,7 @@ public class ImportAssetsHandler(IServiceProvider serviceProvider, AppDbContext 
                 var group = groupsByCode[code];
                 entry.Codes.Add(new LedgerEntryCode
                 {
-                    LedgerEntryId = entry.Id,
-                    LedgerEntry = entry,
-                    CodeGroupId = group.Id,
-                    CodeGroup = group
+                    LedgerEntryId = entry.Id, LedgerEntry = entry, CodeGroupId = group.Id, CodeGroup = group
                 });
             }
 

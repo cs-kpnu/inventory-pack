@@ -16,7 +16,8 @@ public static class HealthEndpoints
             var assetCount = await db.Assets.CountAsync();
             var ledgerEntryCount = await db.LedgerEntries.CountAsync();
             var rejectedCount = await db.RejectedRows.CountAsync();
-            var rejectedReasonCount = await db.RejectedRowReasons.CountAsync();
+            var rejectionIssueCount = await db.RejectionIssues.CountAsync();
+            var rejectedRowIssueCount = await db.RejectedRowIssues.CountAsync();
 
             return Results.Ok(new
             {
@@ -26,7 +27,8 @@ public static class HealthEndpoints
                 ledgerEntries = ledgerEntryCount,
                 assets = assetCount,
                 rejectedRows = rejectedCount,
-                rejectedReasons = rejectedReasonCount
+                rejectionIssues = rejectionIssueCount,
+                rejectedRowIssues = rejectedRowIssueCount
             });
         });
     }

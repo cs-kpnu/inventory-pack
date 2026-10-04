@@ -15,27 +15,49 @@ public static partial class AssetImportValidator
 
         foreach (var row in rows)
         {
-            var reasons = GetRejectionReasons(row);
-            if (reasons.Count > 0)
-                rejected.Add(CreateRejected(row, reasons));
+            var issues = GetLocalIssues(row);
+            if (issues.Count > 0)
+            {
+                var rejectedRow = CreateRejected(row);
+                foreach (var issue in issues)
+                    Link(rejectedRow, issue);
+                rejected.Add(rejectedRow);
+            }
             else
+            {
                 candidates.Add(row);
+            }
         }
 
-        var conflictingCodes = candidates
-            .SelectMany(r => r.InventoryNumbers.Select(c => (Code: c, Row: r)))
+        var conflictingGroups = candidates
+            .SelectMany((row, index) => row.InventoryNumbers.Select(code => (Code: code, Row: row, Index: index)))
             .GroupBy(x => x.Code, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Select(x => NormalizeName(x.Row.Name)).Distinct(StringComparer.Ordinal).Count() > 1)
-            .Select(g => g.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            .ToList();
+
+        var rejectedCandidates = new Dictionary<int, RejectedRow>();
+        foreach (var group in conflictingGroups)
+        {
+            var issue = CreateIssue(RejectionReason.ConflictingNamesForCode, group.Key);
+            foreach (var participant in group)
+            {
+                if (!rejectedCandidates.TryGetValue(participant.Index, out var rejectedRow))
+                {
+                    rejectedRow = CreateRejected(participant.Row);
+                    rejectedCandidates.Add(participant.Index, rejectedRow);
+                }
+
+                Link(rejectedRow, issue);
+            }
+        }
 
         var validatedRows = new List<ValidatedAssetRow>();
 
-        foreach (var row in candidates)
-            if (row.InventoryNumbers.Any(conflictingCodes.Contains))
-                rejected.Add(CreateRejected(row, [RejectionReason.DuplicateCode]));
+        for (var index = 0; index < candidates.Count; index++)
+            if (rejectedCandidates.TryGetValue(index, out var rejectedRow))
+                rejected.Add(rejectedRow);
             else
-                validatedRows.Add(CreateValidatedRow(row));
+                validatedRows.Add(CreateValidatedRow(candidates[index]));
 
         return new ImportResult(validatedRows, rejected);
     }
@@ -61,45 +83,62 @@ public static partial class AssetImportValidator
             : WhitespaceRegex().Replace(name.Trim().ToLowerInvariant().TrimEnd('.', ',', ';', ':', '-', ' '), " ");
     }
 
-    private static RejectedRow CreateRejected(ParsedAssetRow row, IEnumerable<RejectionReason> reasons)
+    private static RejectedRow CreateRejected(ParsedAssetRow row)
     {
-        var rejected = new RejectedRow
+        return new RejectedRow
         {
             RowNumber = row.RowNumber,
             RawText = row.RawText,
+            ParsedName = row.Name,
+            ParsedCodeCount = row.InventoryNumbers.Count,
             Unit = row.RawUnit,
             Mvo = row.Mvo,
             Subaccount = row.Subaccount,
             Quantity = row.Quantity
         };
-
-        foreach (var reason in reasons.Distinct())
-            rejected.Reasons.Add(new RejectedRowReason { Reason = reason, RejectedRow = rejected });
-
-        return rejected;
     }
 
-    private static List<RejectionReason> GetRejectionReasons(ParsedAssetRow row)
+    private static void Link(RejectedRow row, RejectionIssue issue)
     {
-        var reasons = new List<RejectionReason>();
+        var link = new RejectedRowIssue
+        {
+            RejectedRowId = row.Id, RejectedRow = row, RejectionIssueId = issue.Id, RejectionIssue = issue
+        };
+        row.Issues.Add(link);
+        issue.Rows.Add(link);
+    }
+
+    private static RejectionIssue CreateIssue(RejectionReason reason, string? code = null)
+    {
+        var requiresCode = reason is RejectionReason.RepeatedCodeWithinRow or RejectionReason.ConflictingNamesForCode;
+        if (requiresCode ? string.IsNullOrWhiteSpace(code) : code is not null)
+            throw new ArgumentException("Only code-related rejection issues require an offending code.", nameof(code));
+
+        return new RejectionIssue { Reason = reason, Code = code };
+    }
+
+    private static List<RejectionIssue> GetLocalIssues(ParsedAssetRow row)
+    {
+        var issues = new List<RejectionIssue>();
 
         if (string.IsNullOrWhiteSpace(row.Subaccount) || string.IsNullOrWhiteSpace(row.Name))
-            reasons.Add(RejectionReason.MissingContext);
+            issues.Add(CreateIssue(RejectionReason.MissingContext));
 
         if (row.Quantity is null or <= 0)
-            reasons.Add(RejectionReason.InvalidQuantity);
+            issues.Add(CreateIssue(RejectionReason.InvalidQuantity));
 
         if (row.InventoryNumbers.Count == 0)
-            reasons.Add(RejectionReason.NoSingleCode);
+            issues.Add(CreateIssue(RejectionReason.NoValidCodes));
 
-        if (row.InventoryNumbers.Count > 1 &&
-            row.InventoryNumbers.Distinct(StringComparer.OrdinalIgnoreCase).Count() != row.InventoryNumbers.Count)
-            reasons.Add(RejectionReason.DuplicateCode);
+        foreach (var repeatedCode in row.InventoryNumbers
+                     .GroupBy(code => code, StringComparer.OrdinalIgnoreCase)
+                     .Where(group => group.Count() > 1))
+            issues.Add(CreateIssue(RejectionReason.RepeatedCodeWithinRow, repeatedCode.Key));
 
         if (row.Quantity is > 0 && row.Quantity % 1 == 0 && row.InventoryNumbers.Count > 1 &&
             row.InventoryNumbers.Count != row.Quantity.Value)
-            reasons.Add(RejectionReason.CodeQuantityMismatch);
+            issues.Add(CreateIssue(RejectionReason.CodeQuantityMismatch));
 
-        return reasons;
+        return issues;
     }
 }
